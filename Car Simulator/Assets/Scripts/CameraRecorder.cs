@@ -15,7 +15,7 @@ public class CameraRecorder : MonoBehaviour
     private RenderTexture renderTexture;
     private String pathTimestamp;
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         renderTexture = new RenderTexture(screenshotWidth, screenshotHeight, 16, RenderTextureFormat.ARGB32);
         pathTimestamp = DateTime.Now.ToString();
@@ -23,7 +23,7 @@ public class CameraRecorder : MonoBehaviour
         pathTimestamp = Regex.Replace(pathTimestamp, ":", "."); 
     }
 
-    void SaveScreenshot(String path, Camera camera)
+    private void SaveScreenshot(String path, Camera camera)
     {
         Texture2D image = RTImage(camera);
         byte[] bytes = image.EncodeToPNG();
@@ -32,7 +32,7 @@ public class CameraRecorder : MonoBehaviour
         System.IO.File.WriteAllBytes(path, bytes);
     }
 
-    Texture2D RTImage(Camera camera)
+    private Texture2D RTImage(Camera camera)
     {
         // The Render Texture in RenderTexture.active is the one
         // that will be read by ReadPixels.
@@ -54,7 +54,7 @@ public class CameraRecorder : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         timeSinceLastCapture += Time.deltaTime;
         if(timeSinceLastCapture > 1 / framesPerSecond)
