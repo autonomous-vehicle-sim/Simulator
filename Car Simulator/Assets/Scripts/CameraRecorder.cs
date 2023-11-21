@@ -18,6 +18,8 @@ public class CameraRecorder : MonoBehaviour
     private RenderTexture renderTexture;
     private String pathTimestamp;
     private WheelController wheelController;
+    private String dataPath;
+
     // Start is called before the first frame update
     private void Start()
     {
@@ -26,6 +28,16 @@ public class CameraRecorder : MonoBehaviour
         // Replace ':" with '." as windows directories can't contain ':' in their filepaths
         pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
         wheelController = car.GetComponent<WheelController>();
+        dataPath = capturePath + "/" + pathTimestamp + ".csv";
+        List<String> carParams = new List<String> { "SteeringAngle", "MotorTorque" };
+        WritetoCsv(dataPath, string.Join(";",carParams));
+    }
+    private void WritetoCsv(String path, String data)
+    {
+        using (StreamWriter writer = new StreamWriter(path, true))
+        {
+            writer.WriteLine(string.Join(";", data));
+        }
     }
     private void SaveCarData(String path)
     {
@@ -33,11 +45,7 @@ public class CameraRecorder : MonoBehaviour
         
         carData.Add(wheelController.currentSteeringAngle);
         carData.Add(wheelController.currentMotorTorque);
-       
-        using (StreamWriter writer = new StreamWriter(path, true))
-        {
-            writer.WriteLine(string.Join(";", carData));
-        }
+        WritetoCsv(path, string.Join(";", carData));
     }
     private void SaveScreenshot(String path, Camera camera)
     {
@@ -81,8 +89,7 @@ public class CameraRecorder : MonoBehaviour
                 String filepath = capturePath + "/" + pathTimestamp + "/" + cameras[i].name + "/" + framesCaptured.ToString() + ".png";
                 SaveScreenshot(filepath, cameras[i]);
             }
-            String datapath = capturePath + "/" + pathTimestamp + "/" + "data.csv";
-            SaveCarData(datapath);
+            SaveCarData(dataPath);
             framesCaptured++;
         }
     }
