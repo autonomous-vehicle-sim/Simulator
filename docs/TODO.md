@@ -2,6 +2,7 @@
 
 ## IoP 
 - [x] formatowanie numeru wersji 1.00
+- [ ] wyjustować wszystkie podrozdziały
 ## HiSW
 - [ ] punkt 3
 - [ ] punkt 4.2
