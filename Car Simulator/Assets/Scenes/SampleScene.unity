@@ -509,7 +509,7 @@ MonoBehaviour:
   - {fileID: 1175543310}
   - {fileID: 982288555}
   - {fileID: 1444030433}
-  capturePath: D:/Pulpit/vehicle_simulator/Simulator/Screenshot/
+  capturePath: C:/UnitySimulator/
   screenshotWidth: 256
   screenshotHeight: 256
   framesPerSecond: 1
