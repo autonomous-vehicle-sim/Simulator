@@ -1,6 +1,7 @@
 using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 
 public class CameraRecorder : MonoBehaviour
@@ -9,20 +10,43 @@ public class CameraRecorder : MonoBehaviour
     [SerializeField] private String capturePath = "C:/UnitySimulator/";
     [SerializeField] private int screenshotWidth = 256, screenshotHeight = 256;
     [SerializeField] private float framesPerSecond = 1;
+    [SerializeField] private GameObject car;
+
 
     private int framesCaptured = 0;
     private float timeSinceLastCapture = 0;
     private RenderTexture renderTexture;
     private String pathTimestamp;
+    private WheelController wheelController;
+    private String dataPath;
+
     // Start is called before the first frame update
     private void Start()
     {
         renderTexture = new RenderTexture(screenshotWidth, screenshotHeight, 16, RenderTextureFormat.ARGB32);
         pathTimestamp = DateTime.Now.ToString();
         // Replace ':" with '." as windows directories can't contain ':' in their filepaths
-        pathTimestamp = Regex.Replace(pathTimestamp, ":", "."); 
+        pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
+        wheelController = car.GetComponent<WheelController>();
+        dataPath = capturePath + "/" + pathTimestamp + ".csv";
+        List<String> carParams = new List<String> { "SteeringAngle", "MotorTorque" };
+        WritetoCsv(dataPath, string.Join(";",carParams));
     }
-
+    private void WritetoCsv(String path, String data)
+    {
+        using (StreamWriter writer = new StreamWriter(path, true))
+        {
+            writer.WriteLine(string.Join(";", data));
+        }
+    }
+    private void SaveCarData(String path)
+    {
+        List <float> carData = new List<float>();
+        
+        carData.Add(wheelController.currentSteeringAngle);
+        carData.Add(wheelController.currentMotorTorque);
+        WritetoCsv(path, string.Join(";", carData));
+    }
     private void SaveScreenshot(String path, Camera camera)
     {
         Texture2D image = RTImage(camera);
@@ -65,6 +89,7 @@ public class CameraRecorder : MonoBehaviour
                 String filepath = capturePath + "/" + pathTimestamp + "/" + cameras[i].name + "/" + framesCaptured.ToString() + ".png";
                 SaveScreenshot(filepath, cameras[i]);
             }
+            SaveCarData(dataPath);
             framesCaptured++;
         }
     }
