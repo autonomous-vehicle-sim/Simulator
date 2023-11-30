@@ -513,6 +513,7 @@ MonoBehaviour:
   screenshotWidth: 256
   screenshotHeight: 256
   framesPerSecond: 1
+  car: {fileID: 2130647778}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
