@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,11 @@ public class WheelController : MonoBehaviour
     public float maxSteeringAngle;
     public float currentMotorTorque { get; private set; }
     public float currentSteeringAngle { get; private set; }
+
+    public delegate void OnTorqueChange(float torque);
+    public static event OnTorqueChange onTorqueChange;
+    public delegate void OnSteeringChange(float steeringAngle);
+    public static event OnSteeringChange onSteeringChange;
 
     // Transforms the given wheel collider based on simulated position
     public void ApplyLocalPositionToMesh(WheelCollider collider)
@@ -28,6 +34,9 @@ public class WheelController : MonoBehaviour
     {
         currentMotorTorque = maxMotorTorque * Input.GetAxis("Vertical");
         currentSteeringAngle = maxSteeringAngle * Input.GetAxis("Horizontal");
+
+        onTorqueChange?.Invoke(currentMotorTorque);
+        onSteeringChange?.Invoke(currentSteeringAngle);
 
         foreach (AxleInfo axleInfo in axleInfos)
         {
