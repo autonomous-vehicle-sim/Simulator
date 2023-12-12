@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1736003205667748595}
   - component: {fileID: 765022243974451107}
   m_Layer: 0
-  m_Name: Value
+  m_Name: PaletteOption
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -58,7 +58,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.7735849, g: 0.14231044, b: 0.14231044, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

@@ -9,9 +9,12 @@ public class PaletteValuesDisplay : MonoBehaviour
 {
 
     public GameObject imagePrefab;
-    public int gridWidth = 3;
-    public int gridHeight = 4;
-    public const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
+    private int GRID_WIDTH = 3;
+    private int GRID_HEIGHT = 4;
+    private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
+    private const float CELL_WIDTH = 50.0f;
+    private const float CELL_HEIGHT = 50.0f;
+    private const float OFFSET = 5.0f;
 
     void Start()
     {
@@ -22,23 +25,19 @@ public class PaletteValuesDisplay : MonoBehaviour
     {
         RectTransform canvasRect = GetComponent<RectTransform>();
         string[] imageFiles = Directory.GetFiles(IMAGES_DIRECTORY_PATH, "*.png");
-        
-        float cellWidth = 50.0f;
-        float cellHeight = 50.0f;
         int imageIndex = 0;
 
-        for (int y = 0; y < gridHeight; y++)
+        for (int y = 0; y < GRID_HEIGHT; y++)
         {
-            for (int x = 0; x < gridWidth; x++)
+            for (int x = 0; x < GRID_WIDTH; x++)
             {
-                float xPos = x * cellWidth + cellWidth / 2;
-                float yPos = -y * cellHeight - cellHeight / 2;
+                float xPos = (x * CELL_WIDTH) + (x * OFFSET);
+                float yPos = (-y * CELL_HEIGHT) - (y * OFFSET);
 
                 GameObject image = Instantiate(imagePrefab, transform);
                 RectTransform imageRect = image.GetComponent<RectTransform>();
-
                 imageRect.anchoredPosition = new Vector2(xPos, yPos);
-                imageRect.sizeDelta = new Vector2(cellWidth, cellHeight);
+                imageRect.sizeDelta = new Vector2(CELL_WIDTH, CELL_HEIGHT);
                 
                 string imagePath = imageFiles[imageIndex];
                 Sprite sprite = LoadSprite(imagePath);
