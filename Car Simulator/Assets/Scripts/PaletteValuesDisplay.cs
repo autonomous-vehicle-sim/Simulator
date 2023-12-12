@@ -1,6 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,7 +8,7 @@ public class PaletteValuesDisplay : MonoBehaviour
 
     public GameObject imagePrefab;
     private int GRID_WIDTH = 3;
-    private int GRID_HEIGHT = 4;
+    private int GRID_HEIGHT = 5;
     private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
     private const float CELL_WIDTH = 50.0f;
     private const float CELL_HEIGHT = 50.0f;
@@ -25,6 +23,7 @@ public class PaletteValuesDisplay : MonoBehaviour
     {
         RectTransform canvasRect = GetComponent<RectTransform>();
         string[] imageFiles = Directory.GetFiles(IMAGES_DIRECTORY_PATH, "*.png");
+        Array.Sort(imageFiles);
         int imageIndex = 0;
 
         for (int y = 0; y < GRID_HEIGHT; y++)
@@ -38,11 +37,16 @@ public class PaletteValuesDisplay : MonoBehaviour
                 RectTransform imageRect = image.GetComponent<RectTransform>();
                 imageRect.anchoredPosition = new Vector2(xPos, yPos);
                 imageRect.sizeDelta = new Vector2(CELL_WIDTH, CELL_HEIGHT);
-                
+
                 string imagePath = imageFiles[imageIndex];
                 Sprite sprite = LoadSprite(imagePath);
+
+                sprite.name = imagePath;
                 image.GetComponent<Image>().sprite = sprite;
-                imageIndex = imageIndex++ % imageFiles.Length;
+                imageIndex = (++imageIndex) % imageFiles.Length;
+
+                Button button = image.AddComponent<Button>();
+                button.onClick.AddListener(() => OnButtonClick(image.GetComponent<Image>()));
             }
         }
     }
@@ -57,4 +61,9 @@ public class PaletteValuesDisplay : MonoBehaviour
         return sprite;
     }
 
+
+    void OnButtonClick(Image clickedImage)
+    {
+        UnityEngine.Debug.Log("Clicked: " + clickedImage.sprite.name);
+    }
 }
