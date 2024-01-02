@@ -90,6 +90,9 @@ public class PaletteValuesDisplay : MonoBehaviour
 
     void OnButtonClick(Image clickedImage)
     {
+        RectTransform imageRectTransform = selectedImage.GetComponent<RectTransform>();
+        imageRectTransform.rotation = Quaternion.identity;
+
         UpdateSelectedPaletteValueImage(clickedImage.name);
         selectedImage.name = clickedImage.name;
     }
