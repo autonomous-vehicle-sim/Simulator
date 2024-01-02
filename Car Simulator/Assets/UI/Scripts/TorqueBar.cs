@@ -5,8 +5,7 @@ using UnityEngine.UI;
 
 public class TorqueBar : MonoBehaviour
 {
-    [SerializeField]
-    private float maxTorque;
+    [SerializeField] private float maxTorque;
 
     private Image BarImage;
     private float maxBarFillAmount = 0.75f;
