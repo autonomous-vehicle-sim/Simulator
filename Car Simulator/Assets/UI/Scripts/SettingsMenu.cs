@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
-    public bool IsOpened = false;
+    [HideInInspector] public bool IsOpened = false;
 
     [SerializeField] private Image _blurImage;
     [SerializeField] private float _menuFadeSpeed = 4.0f;
