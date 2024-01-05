@@ -6,82 +6,82 @@ using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
-    public bool isOpened = false;
+    public bool IsOpened = false;
 
-    [SerializeField] private Image blurImage;
-    [SerializeField] private float menuFadeSpeed = 4.0f;
-    [SerializeField] private Color fadeStartColor = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-    [SerializeField] private Color fadeEndColor = new Color(0.6f, 0.6f, 0.6f, 1.0f);
+    [SerializeField] private Image _blurImage;
+    [SerializeField] private float _menuFadeSpeed = 4.0f;
+    [SerializeField] private Color _fadeStartColor = new(1.0f, 1.0f, 1.0f, 0.0f);
+    [SerializeField] private Color _fadeEndColor = new(0.6f, 0.6f, 0.6f, 1.0f);
 
-    private CanvasGroup menuGroup;
-    private CanvasGroup hudGroup;
-    private bool menuFadeIn = false;
-    private bool menuFadeOut = false;
-    private float currentFade = 0.0f;           // 0.0f - 1.0f, which corresponds to 0% - 100% fade
+    private CanvasGroup _menuGroup;
+    private CanvasGroup _hudGroup;
+    private bool _menuFadeIn = false;
+    private bool _menuFadeOut = false;
+    private float _currentFade = 0.0f;           // 0.0f - 1.0f, which corresponds to 0% - 100% fade
 
     [ContextMenu("Show Menu")]
     public void ShowSettingsMenu()
     {
-        menuFadeIn = true;
-        isOpened = true;
+        _menuFadeIn = true;
+        IsOpened = true;
     }
 
     [ContextMenu("Hide Menu")]
     public void HideSettingsMenu()
     {
-        menuFadeOut = true;
-        isOpened = false;
+        _menuFadeOut = true;
+        IsOpened = false;
     }
 
     private void Start()
     {
-        menuGroup = GetComponent<CanvasGroup>();
-        hudGroup = GameObject.Find("HUD").GetComponent<CanvasGroup>();
-        menuGroup.interactable = false;
-        menuGroup.alpha = 0.0f;
+        _menuGroup = GetComponent<CanvasGroup>();
+        _hudGroup = GameObject.Find("HUD").GetComponent<CanvasGroup>();
+        _menuGroup.interactable = false;
+        _menuGroup.alpha = 0.0f;
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (isOpened) HideSettingsMenu();
+            if (IsOpened) HideSettingsMenu();
             else ShowSettingsMenu();
         }
 
-        if (menuFadeIn)
+        if (_menuFadeIn)
         {
-            menuFadeOut = false;
-            if (currentFade < 1.0f)
+            _menuFadeOut = false;
+            if (_currentFade < 1.0f)
             {
-                currentFade += Time.deltaTime * menuFadeSpeed;
-                if (blurImage != null) blurImage.color = Color.Lerp(fadeStartColor, fadeEndColor, currentFade);
+                _currentFade += Time.deltaTime * _menuFadeSpeed;
+                if (_blurImage != null) _blurImage.color = Color.Lerp(_fadeStartColor, _fadeEndColor, _currentFade);
             }
             else
             {
-                currentFade = 1.0f;
-                menuFadeIn = false;
-                menuGroup.interactable = true;
+                _currentFade = 1.0f;
+                _menuFadeIn = false;
+                _menuGroup.interactable = true;
             }
         }
 
-        if (menuFadeOut)
+        if (_menuFadeOut)
         {
-            menuFadeIn = false;
-            if (currentFade > 0.0f)
+            _menuFadeIn = false;
+            if (_currentFade > 0.0f)
             {
-                currentFade -= Time.deltaTime * menuFadeSpeed;
-                if (blurImage != null) blurImage.color = Color.Lerp(fadeStartColor, fadeEndColor, currentFade);
+                _currentFade -= Time.deltaTime * _menuFadeSpeed;
+                if (_blurImage != null) _blurImage.color = Color.Lerp(_fadeStartColor, _fadeEndColor, _currentFade);
             }
             else
             {
-                currentFade = 0.0f;
-                menuFadeOut = false;
-                menuGroup.interactable = false;
+                _currentFade = 0.0f;
+                _menuFadeOut = false;
+                _menuGroup.interactable = false;
             }
         }
 
-        menuGroup.alpha = currentFade;
-        hudGroup.alpha = 1.0f - currentFade;
+        _menuGroup.alpha = _currentFade;
+        _hudGroup.alpha = 1.0f - _currentFade;
     }
 }

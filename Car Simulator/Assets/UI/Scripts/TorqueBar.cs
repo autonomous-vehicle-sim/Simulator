@@ -5,19 +5,19 @@ using UnityEngine.UI;
 
 public class TorqueBar : MonoBehaviour
 {
-    [SerializeField] private float maxTorque;
+    [SerializeField] private float _maxTorque;
 
-    private Image BarImage;
-    private float maxBarFillAmount = 0.75f;
+    private Image _BarImage;
+    private float _maxBarFillAmount = 0.75f;
 
     public void SetTorque(float torque)
     {
-        float barFillAmount = (torque / maxTorque) * maxBarFillAmount;
-        BarImage.fillAmount = barFillAmount;
+        float barFillAmount = (torque / _maxTorque) * _maxBarFillAmount;
+        _BarImage.fillAmount = barFillAmount;
     }
 
     private void Start()
     {
-        BarImage = GetComponent<Image>();
+        _BarImage = GetComponent<Image>();
     }
 }

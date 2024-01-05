@@ -5,39 +5,39 @@ using TMPro;
 
 public class TimeDisplay : MonoBehaviour
 {
-    private TMP_Text timerValueObject;
+    private TMP_Text _timerValueObject;
 
-    public float time { get; private set; }
-    public bool isRunning { get; private set; }
+    public float Time { get; private set; }
+    public bool IsRunning { get; private set; }
 
     public void StartTimer()
     {
-        isRunning = true;
+        IsRunning = true;
     }
 
     public void StopTimer()
     {
-        isRunning = false;
+        IsRunning = false;
     }
 
     public void ResetTimer()
     {
-        time = 0.0f;
+        Time = 0.0f;
     }
 
     private void Start()
     {
-        time = 0.0f;
-        timerValueObject = GameObject.Find("TimeValue").GetComponent<TMP_Text>();
+        Time = 0.0f;
+        _timerValueObject = GameObject.Find("TimeValue").GetComponent<TMP_Text>();
         StartTimer();
     }
 
     private void Update()
     {
-        string seconds = (Mathf.Round(Mathf.Floor(time)) % 60).ToString("00");
-        string minutes = Mathf.Round(Mathf.Floor(time / 60) % 60).ToString("00");
-        string hours = Mathf.Round(Mathf.Floor(time / 3600) % 100).ToString("00");
-        timerValueObject.text = hours + ":" + minutes + ":" + seconds;
-        if (isRunning) time += Time.deltaTime;
+        string seconds = (Mathf.Round(Mathf.Floor(Time)) % 60).ToString("00");
+        string minutes = Mathf.Round(Mathf.Floor(Time / 60) % 60).ToString("00");
+        string hours = Mathf.Round(Mathf.Floor(Time / 3600) % 100).ToString("00");
+        _timerValueObject.text = hours + ":" + minutes + ":" + seconds;
+        if (IsRunning) Time += UnityEngine.Time.deltaTime;
     }
 }
