@@ -5,24 +5,21 @@ using UnityEngine;
 
 public class WindowModeSetting : MonoBehaviour
 {
-    [SerializeField] private SettingsController settingsController;
-
     private TMP_Dropdown windowModeDropdown;
 
     public void HandleWindowModeChange(int index)
     {
-        Debug.Log(index);
         if (windowModeDropdown != null)
         {
             string windowModeName = windowModeDropdown.options[index].text;
-            settingsController.SetWindowModeFromName(windowModeName);
+            SettingsController.instance.SetWindowModeFromName(windowModeName);
         }
     }
 
     private void Start()
     {
         windowModeDropdown = GetComponentInChildren<TMP_Dropdown>();
-        int optionIndex = windowModeDropdown.options.FindIndex(option => option.text == settingsController.windowModeName);
+        int optionIndex = windowModeDropdown.options.FindIndex(option => option.text == SettingsController.instance.windowModeName);
         windowModeDropdown.SetValueWithoutNotify(optionIndex);
     }
 }
