@@ -15,13 +15,14 @@ public class WindowModeSetting : MonoBehaviour
         if (windowModeDropdown != null)
         {
             string windowModeName = windowModeDropdown.options[index].text;
-            settingsController.SetWindowMode(windowModeName);
+            settingsController.SetWindowModeFromName(windowModeName);
         }
     }
 
     private void Start()
     {
         windowModeDropdown = GetComponentInChildren<TMP_Dropdown>();
-        windowModeDropdown.value = windowModeDropdown.options.FindIndex(option => option.text == settingsController.windowModeName);
+        int optionIndex = windowModeDropdown.options.FindIndex(option => option.text == settingsController.windowModeName);
+        windowModeDropdown.SetValueWithoutNotify(optionIndex);
     }
 }

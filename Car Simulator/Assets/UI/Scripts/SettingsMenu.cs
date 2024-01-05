@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
+    public bool isOpened = false;
+
     [SerializeField] private Image blurImage;
     [SerializeField] private float menuFadeSpeed = 4.0f;
     [SerializeField] private Color fadeStartColor = new Color(1.0f, 1.0f, 1.0f, 0.0f);
@@ -13,10 +15,9 @@ public class SettingsMenu : MonoBehaviour
 
     private CanvasGroup menuGroup;
     private CanvasGroup hudGroup;
-    private bool isOpened = false;
     private bool menuFadeIn = false;
     private bool menuFadeOut = false;
-    private float currentFade = 0.0f;
+    private float currentFade = 0.0f;           // 0.0f - 1.0f, which corresponds to 0% - 100% fade
 
     [ContextMenu("Show Menu")]
     public void ShowSettingsMenu()
