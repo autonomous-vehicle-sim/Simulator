@@ -1,20 +1,14 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class WheelController : MonoBehaviour
 {
-    public List<AxleInfo> AxleInfos;        // information about each individual axle
-    public float MaxMotorTorque;
-    public float MaxSteeringAngle;
-    public float CurrentMotorTorque { get; private set; }
-    public float CurrentSteeringAngle { get; private set; }
-
-    public delegate void TorqueChangedEventHandler(float torque);
-    public static event TorqueChangedEventHandler TorqueChanged;
-    public delegate void SteeringChangedEventHandler(float steeringAngle);
-    public static event SteeringChangedEventHandler SteeringChanged;
+    public List<AxleInfo> axleInfos;        // information about each individual axle
+    public float maxMotorTorque;
+    public float maxSteeringAngle;
+    public float currentMotorTorque { get; private set; }
+    public float currentSteeringAngle { get; private set; }
 
     // Transforms the given wheel collider based on simulated position
     public void ApplyLocalPositionToMesh(WheelCollider collider)
@@ -32,27 +26,24 @@ public class WheelController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        CurrentMotorTorque = MaxMotorTorque * Input.GetAxis("Vertical");
-        CurrentSteeringAngle = MaxSteeringAngle * Input.GetAxis("Horizontal");
+        currentMotorTorque = maxMotorTorque * Input.GetAxis("Vertical");
+        currentSteeringAngle = maxSteeringAngle * Input.GetAxis("Horizontal");
 
-        TorqueChanged?.Invoke(CurrentMotorTorque);
-        SteeringChanged?.Invoke(CurrentSteeringAngle);
-
-        foreach (AxleInfo axleInfo in AxleInfos)
+        foreach (AxleInfo axleInfo in axleInfos)
         {
-            if (axleInfo.Motor)
+            if (axleInfo.motor)
             {
-                axleInfo.LeftWheel.motorTorque = CurrentMotorTorque;
-                axleInfo.RightWheel.motorTorque = CurrentMotorTorque;
+                axleInfo.leftWheel.motorTorque = currentMotorTorque;
+                axleInfo.rightWheel.motorTorque = currentMotorTorque;
             }
-            if (axleInfo.Steering)
+            if (axleInfo.steering)
             {
-                axleInfo.LeftWheel.steerAngle = CurrentSteeringAngle;
-                axleInfo.RightWheel.steerAngle = CurrentSteeringAngle;
+                axleInfo.leftWheel.steerAngle = currentSteeringAngle;
+                axleInfo.rightWheel.steerAngle = currentSteeringAngle;
             }
 
-            ApplyLocalPositionToMesh(axleInfo.LeftWheel);
-            ApplyLocalPositionToMesh(axleInfo.RightWheel);
+            ApplyLocalPositionToMesh(axleInfo.leftWheel);
+            ApplyLocalPositionToMesh(axleInfo.rightWheel);
         }
     }
 }
@@ -60,8 +51,8 @@ public class WheelController : MonoBehaviour
 [System.Serializable]
 public class AxleInfo
 {
-    public WheelCollider LeftWheel;
-    public WheelCollider RightWheel;
-    public bool Motor;          // is this wheel attached to the motor?
-    public bool Steering;       // does this wheel apply steer angle?
+    public WheelCollider leftWheel;
+    public WheelCollider rightWheel;
+    public bool motor;          // is this wheel attached to the motor?
+    public bool steering;       // does this wheel apply steer angle?
 }

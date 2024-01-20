@@ -1,51 +1,28 @@
 using UnityEngine;
-using System.Collections.Generic;
+using System.Collections;
 using System;
-using System.IO;
 using System.Text.RegularExpressions;
 
 public class CameraRecorder : MonoBehaviour
 {
-    [SerializeField] private Camera[] _cameras;
-    [SerializeField] private String _capturePath = "C:/UnitySimulator/";
-    [SerializeField] private int _screenshotWidth = 256, _screenshotHeight = 256;
-    [SerializeField] private float _framesPerSecond = 1;
-    [SerializeField] private GameObject _car;
+    [SerializeField] private Camera[] cameras;
+    [SerializeField] private String capturePath = "C:/UnitySimulator/";
+    [SerializeField] private int screenshotWidth = 256, screenshotHeight = 256;
+    [SerializeField] private float framesPerSecond = 1;
 
-    private int _framesCaptured = 0;
-    private float _timeSinceLastCapture = 0;
-    private RenderTexture _renderTexture;
-    private String _pathTimestamp;
-    private WheelController _wheelController;
-    private String _dataPath;
-
+    private int framesCaptured = 0;
+    private float timeSinceLastCapture = 0;
+    private RenderTexture renderTexture;
+    private String pathTimestamp;
     // Start is called before the first frame update
     private void Start()
     {
-        _renderTexture = new RenderTexture(_screenshotWidth, _screenshotHeight, 16, RenderTextureFormat.ARGB32);
-        _pathTimestamp = DateTime.Now.ToString();
+        renderTexture = new RenderTexture(screenshotWidth, screenshotHeight, 16, RenderTextureFormat.ARGB32);
+        pathTimestamp = DateTime.Now.ToString();
         // Replace ':" with '." as windows directories can't contain ':' in their filepaths
-        _pathTimestamp = Regex.Replace(_pathTimestamp, ":", ".");
-        _wheelController = _car.GetComponent<WheelController>();
-        _dataPath = _capturePath + "/" + _pathTimestamp + ".csv";
-        List<String> carParams = new List<String> { "SteeringAngle", "MotorTorque" };
-        WritetoCsv(_dataPath, string.Join(";",carParams));
+        pathTimestamp = Regex.Replace(pathTimestamp, ":", "."); 
     }
-    private void WritetoCsv(String path, String data)
-    {
-        using (StreamWriter writer = new StreamWriter(path, true))
-        {
-            writer.WriteLine(string.Join(";", data));
-        }
-    }
-    private void SaveCarData(String path)
-    {
-        List <float> carData = new List<float>();
-        
-        carData.Add(_wheelController.CurrentSteeringAngle);
-        carData.Add(_wheelController.CurrentMotorTorque);
-        WritetoCsv(path, string.Join(";", carData));
-    }
+
     private void SaveScreenshot(String path, Camera camera)
     {
         Texture2D image = RTImage(camera);
@@ -60,7 +37,7 @@ public class CameraRecorder : MonoBehaviour
         // The Render Texture in RenderTexture.active is the one
         // that will be read by ReadPixels.
         var currentRT = RenderTexture.active;
-        camera.targetTexture = _renderTexture;
+        camera.targetTexture = renderTexture;
         RenderTexture.active = camera.targetTexture;
 
         // Render the camera's view.
@@ -79,17 +56,16 @@ public class CameraRecorder : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        _timeSinceLastCapture += Time.deltaTime;
-        if(_timeSinceLastCapture > 1 / _framesPerSecond)
+        timeSinceLastCapture += Time.deltaTime;
+        if(timeSinceLastCapture > 1 / framesPerSecond)
         {
-            _timeSinceLastCapture = 0;
-            for(int i = 0; i < _cameras.Length; i++)
+            timeSinceLastCapture = 0;
+            for(int i = 0; i < cameras.Length; i++)
             {
-                String filepath = _capturePath + "/" + _pathTimestamp + "/" + _cameras[i].name + "/" + _framesCaptured.ToString() + ".png";
-                SaveScreenshot(filepath, _cameras[i]);
+                String filepath = capturePath + "/" + pathTimestamp + "/" + cameras[i].name + "/" + framesCaptured.ToString() + ".png";
+                SaveScreenshot(filepath, cameras[i]);
             }
-            SaveCarData(_dataPath);
-            _framesCaptured++;
+            framesCaptured++;
         }
     }
 }
