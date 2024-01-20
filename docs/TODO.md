@@ -1,9 +1,12 @@
-# TODO (przy okazji)
-Tu wrzucać uwagi niedotyczące spraw merytorycznych typu formatowanie
+# TODO (przy okazji kolejnej wersji)
+
 ## IoP 
-- formatowanie numeru wersji 1.00
+- [x] formatowanie numeru wersji 1.00
+- [ ] wyjustować wszystkie podrozdziały
 ## HiSW
-empty :open_hands:
+- [x] punkt 3
+- [x] punkt 4.2
+- [x] punkt 4.3
 ## DTP
 empty :open_hands:
 ## Plakat
