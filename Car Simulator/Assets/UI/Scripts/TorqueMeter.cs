@@ -6,33 +6,33 @@ using TMPro;
 
 public class TorqueMeter : MonoBehaviour
 {
-    private TorqueBar torqueBarObject;
-    private TMP_Text torqueValueObject;
-    private TMP_Text directionIndicatorObject;
+    private TorqueBar _torqueBarObject;
+    private TMP_Text _torqueValueObject;
+    private TMP_Text _directionIndicatorObject;
 
     private void UpdateTorque(float torque)
     {
-        torqueBarObject.SetTorque(Mathf.Abs(torque));
-        torqueValueObject.SetText(Mathf.Round(Mathf.Abs(torque)).ToString());
+        _torqueBarObject.SetTorque(Mathf.Abs(torque));
+        _torqueValueObject.SetText(Mathf.Round(Mathf.Abs(torque)).ToString());
         if (torque > 0)
         {
-            directionIndicatorObject.text = "F";
+            _directionIndicatorObject.text = "F";
         }
         else if (torque < 0)
         {
-            directionIndicatorObject.text = "R";
+            _directionIndicatorObject.text = "R";
         }
         else
         {
-            directionIndicatorObject.text = "";
+            _directionIndicatorObject.text = "";
         }
     }
 
     private void Start()
     {
-        torqueBarObject = GetComponentInChildren<TorqueBar>();
-        torqueValueObject = GameObject.Find("TorqueValue").GetComponent<TMP_Text>();
-        directionIndicatorObject = GameObject.Find("TorqueDirectionIndicator").GetComponent<TMP_Text>();
-        WheelController.onTorqueChange += UpdateTorque;
+        _torqueBarObject = GetComponentInChildren<TorqueBar>();
+        _torqueValueObject = GameObject.Find("TorqueValue").GetComponent<TMP_Text>();
+        _directionIndicatorObject = GameObject.Find("TorqueDirectionIndicator").GetComponent<TMP_Text>();
+        WheelController.TorqueChanged += UpdateTorque;
     }
 }

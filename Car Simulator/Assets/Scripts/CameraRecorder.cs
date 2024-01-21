@@ -6,31 +6,30 @@ using System.Text.RegularExpressions;
 
 public class CameraRecorder : MonoBehaviour
 {
-    [SerializeField] private Camera[] cameras;
-    [SerializeField] private String capturePath = "C:/UnitySimulator/";
-    [SerializeField] private int screenshotWidth = 256, screenshotHeight = 256;
-    [SerializeField] private float framesPerSecond = 1;
-    [SerializeField] private GameObject car;
+    [SerializeField] private Camera[] _cameras;
+    [SerializeField] private String _capturePath = "C:/UnitySimulator/";
+    [SerializeField] private int _screenshotWidth = 256, _screenshotHeight = 256;
+    [SerializeField] private float _framesPerSecond = 1;
+    [SerializeField] private GameObject _car;
 
-
-    private int framesCaptured = 0;
-    private float timeSinceLastCapture = 0;
-    private RenderTexture renderTexture;
-    private String pathTimestamp;
-    private WheelController wheelController;
-    private String dataPath;
+    private int _framesCaptured = 0;
+    private float _timeSinceLastCapture = 0;
+    private RenderTexture _renderTexture;
+    private String _pathTimestamp;
+    private WheelController _wheelController;
+    private String _dataPath;
 
     // Start is called before the first frame update
     private void Start()
     {
-        renderTexture = new RenderTexture(screenshotWidth, screenshotHeight, 16, RenderTextureFormat.ARGB32);
-        pathTimestamp = DateTime.Now.ToString();
+        _renderTexture = new RenderTexture(_screenshotWidth, _screenshotHeight, 16, RenderTextureFormat.ARGB32);
+        _pathTimestamp = DateTime.Now.ToString();
         // Replace ':" with '." as windows directories can't contain ':' in their filepaths
-        pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
-        wheelController = car.GetComponent<WheelController>();
-        dataPath = capturePath + "/" + pathTimestamp + ".csv";
+        _pathTimestamp = Regex.Replace(_pathTimestamp, ":", ".");
+        _wheelController = _car.GetComponent<WheelController>();
+        _dataPath = _capturePath + "/" + _pathTimestamp + ".csv";
         List<String> carParams = new List<String> { "SteeringAngle", "MotorTorque" };
-        WritetoCsv(dataPath, string.Join(";",carParams));
+        WritetoCsv(_dataPath, string.Join(";",carParams));
     }
     private void WritetoCsv(String path, String data)
     {
@@ -43,8 +42,8 @@ public class CameraRecorder : MonoBehaviour
     {
         List <float> carData = new List<float>();
         
-        carData.Add(wheelController.currentSteeringAngle);
-        carData.Add(wheelController.currentMotorTorque);
+        carData.Add(_wheelController.CurrentSteeringAngle);
+        carData.Add(_wheelController.CurrentMotorTorque);
         WritetoCsv(path, string.Join(";", carData));
     }
     private void SaveScreenshot(String path, Camera camera)
@@ -61,7 +60,7 @@ public class CameraRecorder : MonoBehaviour
         // The Render Texture in RenderTexture.active is the one
         // that will be read by ReadPixels.
         var currentRT = RenderTexture.active;
-        camera.targetTexture = renderTexture;
+        camera.targetTexture = _renderTexture;
         RenderTexture.active = camera.targetTexture;
 
         // Render the camera's view.
@@ -80,17 +79,17 @@ public class CameraRecorder : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        timeSinceLastCapture += Time.deltaTime;
-        if(timeSinceLastCapture > 1 / framesPerSecond)
+        _timeSinceLastCapture += Time.deltaTime;
+        if(_timeSinceLastCapture > 1 / _framesPerSecond)
         {
-            timeSinceLastCapture = 0;
-            for(int i = 0; i < cameras.Length; i++)
+            _timeSinceLastCapture = 0;
+            for(int i = 0; i < _cameras.Length; i++)
             {
-                String filepath = capturePath + "/" + pathTimestamp + "/" + cameras[i].name + "/" + framesCaptured.ToString() + ".png";
-                SaveScreenshot(filepath, cameras[i]);
+                String filepath = _capturePath + "/" + _pathTimestamp + "/" + _cameras[i].name + "/" + _framesCaptured.ToString() + ".png";
+                SaveScreenshot(filepath, _cameras[i]);
             }
-            SaveCarData(dataPath);
-            framesCaptured++;
+            SaveCarData(_dataPath);
+            _framesCaptured++;
         }
     }
 }
