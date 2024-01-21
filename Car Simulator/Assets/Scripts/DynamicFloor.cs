@@ -24,6 +24,7 @@ public class DynamicFloor : MonoBehaviour
     private (int, int)[,,,] rules;
     private bool[,] visitedCells;
     private const int numberOfDirections = 4;
+    private bool floorGenerated = false;
     private void InitializeCellRules()
     {
         rules = new (int, int)[2, 2, 2, 2];
@@ -83,6 +84,15 @@ public class DynamicFloor : MonoBehaviour
         public void SetDirection(Direction dir, bool value)
         {
             directions[(int)dir] = value;
+        }
+
+        public int GetNumberOfSetDirections()
+        {
+            int setDirections = 0;
+            for (int i = 0; i < numberOfDirections; i++)
+                if (directions[i])
+                    setDirections++;
+            return setDirections;
         }
     }
 
@@ -206,7 +216,7 @@ public class DynamicFloor : MonoBehaviour
         Debug.Log(cellsToCollapse + " id: " + currentID + " possible cells remaining: " + possibleCellsRemaining);
         for (int i = 0; i < numberOfDirections; i++)
             cell.SetDirection((Direction)i, collapseState(directions[i], ref cellsToCollapse, ref possibleCellsRemaining));
-
+            
         cell.set = true;
         cell.id = currentID++;
 
@@ -292,11 +302,31 @@ public class DynamicFloor : MonoBehaviour
                 }
     }
 
-    IEnumerator GenerateFloor()
+    private bool IsErrorInGeneration()
     {
-        currentID = 0;
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++)
+                if (cells[i, j].GetNumberOfSetDirections() == 1)
+                {
+                    return true;
+                }
+        return false;
+    }
+
+    IEnumerator StartFloorGeneration()
+    {
+        floorGenerated = false;
         Random.InitState(seed);
         yield return null;
+        while (!floorGenerated)
+        {
+            GenerateFloor();
+        }
+    }
+
+    void GenerateFloor()
+    {
+        currentID = 0;
         List<GameObject> children = new List<GameObject>();
         foreach (Transform child in transform)
         {
@@ -383,18 +413,19 @@ public class DynamicFloor : MonoBehaviour
             collapse(ref randomCandidate, coordinates.Item1, coordinates.Item2);
         }
         SetUnreachableCellsToBlank();
+        if (IsErrorInGeneration())
+        {
+            Debug.Log("Discarding wrongly generated floor");
+            return;
+        }
 
         for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
             {
-                //cubes[i, j] = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 planes[i, j] = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                //cubes[i, j].transform.SetParent(this.transform);
                 planes[i, j].transform.SetParent(this.transform);
-                //cubes[i, j].transform.localPosition = new Vector3(i * 1, 1, j * 1);
                 planes[i, j].transform.localPosition = new Vector3(i * 1, 2, j * 1);
-                //cubes[i, j].transform.localScale = new Vector3(1, 1, 1);
                 planes[i, j].transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
                 int materialIdx = GetCorrectCellAsset(cells[i, j].GetDirection(Direction.Left), cells[i, j].GetDirection(Direction.Up),
@@ -403,19 +434,10 @@ public class DynamicFloor : MonoBehaviour
                                                     cells[i, j].GetDirection(Direction.Right), cells[i, j].GetDirection(Direction.Down)).Item2;
                 planes[i, j].GetComponent<MeshRenderer>().sharedMaterial = materials[materialIdx];
                 planes[i, j].transform.eulerAngles = new Vector3(0, rotation, 0);
-                string s = "Floor";
-                if (cells[i, j].GetDirection(Direction.Left))
-                    s += " left ";
-                if (cells[i, j].GetDirection(Direction.Right))
-                    s += " right ";
-                if (cells[i, j].GetDirection(Direction.Up))
-                    s += " up ";
-                if (cells[i, j].GetDirection(Direction.Down))
-                    s += " down ";
-                s += cells[i, j].id.ToString();
-                planes[i, j].name = s;//"Floor tile";
+                planes[i, j].name = "Floor tile";
             }
         }
+        floorGenerated = true;
     }
 
     // Start is called before the first frame update
@@ -427,7 +449,7 @@ public class DynamicFloor : MonoBehaviour
     void OnValidate()
     {
         InitializeCellRules();
-        StartCoroutine(nameof(GenerateFloor));
+        StartCoroutine(nameof(StartFloorGeneration));
     }
 
     // Update is called once per frame
