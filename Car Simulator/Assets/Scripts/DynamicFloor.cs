@@ -8,89 +8,89 @@ using UnityEngine.Windows;
 public class DynamicFloor : MonoBehaviour
 {
     [SerializeField]
-    private Material FloorMaterial;
+    private Material _floorMaterial;
     [SerializeField]
-    private int width = 20;
+    private int _width = 20;
     [SerializeField]
-    private int height = 20;
+    private int _height = 20;
     [SerializeField]
-    private int seed = 1;
+    private int _seed = 1;
 
-    private GameObject[,] cubes;
-    private GameObject[,] planes;
-    private Cell[,] cells;
+    private GameObject[,] _cubes;
+    private GameObject[,] _planes;
+    private Cell[,] _cells;
 
-    private int currentID = 0;
-    private (int, int)[,,,] rules;
-    private bool[,] visitedCells;
-    private const int numberOfDirections = 4;
-    private bool floorGenerated = false;
+    private int _currentID = 0;
+    private (int, int)[,,,] _rules;
+    private bool[,] _visitedCells;
+    private const int _NUMBER_OF_DIRECTIONS = 4;
+    private bool _floorGenerated = false;
     private void InitializeCellRules()
     {
-        rules = new (int, int)[2, 2, 2, 2];
-        rules[0, 0, 0, 0] = (1, 0);
+        _rules = new (int, int)[2, 2, 2, 2];
+        _rules[0, 0, 0, 0] = (1, 0);
 
-        rules[1, 0, 1, 0] = (2, 90);
-        rules[0, 1, 0, 1] = (2, 0);
+        _rules[1, 0, 1, 0] = (2, 90);
+        _rules[0, 1, 0, 1] = (2, 0);
 
-        rules[0, 0, 1, 1] = (3, 0);
-        rules[1, 0, 0, 1] = (3, 90);
-        rules[1, 1, 0, 0] = (3, 180);
-        rules[0, 1, 1, 0] = (3, 270);
+        _rules[0, 0, 1, 1] = (3, 0);
+        _rules[1, 0, 0, 1] = (3, 90);
+        _rules[1, 1, 0, 0] = (3, 180);
+        _rules[0, 1, 1, 0] = (3, 270);
 
-        rules[0, 1, 1, 1] = (4, 0);
-        rules[1, 0, 1, 1] = (4, 90);
-        rules[1, 1, 0, 1] = (4, 180);
-        rules[1, 1, 1, 0] = (4, 270);
+        _rules[0, 1, 1, 1] = (4, 0);
+        _rules[1, 0, 1, 1] = (4, 90);
+        _rules[1, 1, 0, 1] = (4, 180);
+        _rules[1, 1, 1, 0] = (4, 270);
 
-        rules[1, 1, 1, 1] = (5, 0);
+        _rules[1, 1, 1, 1] = (5, 0);
     }
 
     private (int, int) GetCorrectCellAsset(bool left, bool up, bool right, bool down)
     {
-        return rules[System.Convert.ToInt32(left), System.Convert.ToInt32(up), System.Convert.ToInt32(right), System.Convert.ToInt32(down)];
+        return _rules[System.Convert.ToInt32(left), System.Convert.ToInt32(up), System.Convert.ToInt32(right), System.Convert.ToInt32(down)];
     }
 
     private class Cell
     {
-        public bool[] directions = new bool[4];
-        public bool set;
-        public int id;
+        private bool[] _directions = new bool[4];
+        public bool Set;
+        public int Id;
         public Cell()
         {
-            for (int i = 0; i < numberOfDirections; i++)
+            for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
             {
-                directions[i] = false;
+                _directions[i] = false;
             }
-            set = false;
-            id = 0;
+            Set = false;
+            Id = 0;
         }
 
         public Cell(bool left, bool up, bool right, bool down)
         {
-            directions[(int)Direction.Left] = left;
-            directions[(int)Direction.Up] = up;
-            directions[(int)Direction.Right] = right;
-            directions[(int)Direction.Down] = down;
-            set = true;
-            id = 0;
+            _directions[(int)Direction.Left] = left;
+            _directions[(int)Direction.Up] = up;
+            _directions[(int)Direction.Right] = right;
+            _directions[(int)Direction.Down] = down;
+            Set = true;
+            Id = 0;
         }
 
         public bool GetDirection(Direction dir)
         {
-            return directions[(int)dir];
+            return _directions[(int)dir];
         }
 
         public void SetDirection(Direction dir, bool value)
         {
-            directions[(int)dir] = value;
+            _directions[(int)dir] = value;
         }
 
         public int GetNumberOfSetDirections()
         {
             int setDirections = 0;
-            for (int i = 0; i < numberOfDirections; i++)
-                if (directions[i])
+            for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
+                if (_directions[i])
                     setDirections++;
             return setDirections;
         }
@@ -114,43 +114,43 @@ public class DynamicFloor : MonoBehaviour
     private bool IsAdjacentCellSet(int y, int x, Direction dir)
     {
         if (dir == Direction.Left)
-            return InBounds((y, x - 1)) && cells[y, x - 1].set;
+            return InBounds((y, x - 1)) && _cells[y, x - 1].Set;
         if (dir == Direction.Up)
-            return InBounds((y - 1, x)) && cells[y - 1, x].set;
+            return InBounds((y - 1, x)) && _cells[y - 1, x].Set;
         if (dir == Direction.Right)
-            return InBounds((y, x + 1)) && cells[y, x + 1].set;
+            return InBounds((y, x + 1)) && _cells[y, x + 1].Set;
         if (dir == Direction.Down)
-            return InBounds((y + 1, x)) && cells[y + 1, x].set;
+            return InBounds((y + 1, x)) && _cells[y + 1, x].Set;
         throw new System.Exception("Wrong coordinates");
     }
 
     private bool IsAdjacentCellReachable(int y, int x, Direction dir)
     {
         if (dir == Direction.Left)
-            return InBounds((y, x - 1)) && cells[y, x].GetDirection(Direction.Left);
+            return InBounds((y, x - 1)) && _cells[y, x].GetDirection(Direction.Left);
         if (dir == Direction.Up)
-            return InBounds((y - 1, x)) && cells[y, x].GetDirection(Direction.Up);
+            return InBounds((y - 1, x)) && _cells[y, x].GetDirection(Direction.Up);
         if (dir == Direction.Right)
-            return InBounds((y, x + 1)) && cells[y, x].GetDirection(Direction.Right);
+            return InBounds((y, x + 1)) && _cells[y, x].GetDirection(Direction.Right);
         if (dir == Direction.Down)
-            return InBounds((y + 1, x)) && cells[y, x].GetDirection(Direction.Down);
+            return InBounds((y + 1, x)) && _cells[y, x].GetDirection(Direction.Down);
         throw new System.Exception("Wrong coordinates");
     }
 
     private ref Cell GetAdjacetCell(int y, int x, Direction dir)
     {
         if (dir == Direction.Left)
-            return ref cells[y, x - 1];
+            return ref _cells[y, x - 1];
         if (dir == Direction.Up)
-            return ref cells[y - 1, x];
+            return ref _cells[y - 1, x];
         if (dir == Direction.Right)
-            return ref cells[y, x + 1];
+            return ref _cells[y, x + 1];
         if (dir == Direction.Down)
-            return ref cells[y + 1, x];
+            return ref _cells[y + 1, x];
         throw new System.Exception("Wrong coordinates");
     }
 
-    bool collapseState(EntropyState state, ref int cellsToCollapse, ref int possibleCellsRemaining)
+    private bool CollapseState(EntropyState state, ref int cellsToCollapse, ref int possibleCellsRemaining)
     {
         if (state == EntropyState.Impossible)
             return false;
@@ -179,13 +179,13 @@ public class DynamicFloor : MonoBehaviour
         throw new System.Exception("Unexpected direction");
     }
 
-    void collapse(ref Cell cell, int y, int x)
+    private void Collapse(ref Cell cell, int y, int x)
     {
         EntropyState[] directions = new EntropyState[4];
-        for (int i = 0; i < numberOfDirections; i++)
+        for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
             directions[i] = EntropyState.Allowed;
 
-        for (int i = 0; i < numberOfDirections; i++)
+        for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
         {
             Direction dir = (Direction)i;
             if (IsAdjacentCellSet(y, x, dir))
@@ -199,7 +199,7 @@ public class DynamicFloor : MonoBehaviour
 
         int possibleCellsRemaining = 0;
         int setDirections = 0;
-        for (int i = 0; i < numberOfDirections; i++)
+        for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
         {
             if (directions[i] == EntropyState.Allowed)
                 possibleCellsRemaining++;
@@ -213,21 +213,21 @@ public class DynamicFloor : MonoBehaviour
         else if ((cellsToCollapse + setDirections) == 1)
             cellsToCollapse = 0;
 
-        Debug.Log(cellsToCollapse + " id: " + currentID + " possible cells remaining: " + possibleCellsRemaining);
-        for (int i = 0; i < numberOfDirections; i++)
-            cell.SetDirection((Direction)i, collapseState(directions[i], ref cellsToCollapse, ref possibleCellsRemaining));
+        Debug.Log(cellsToCollapse + " id: " + _currentID + " possible cells remaining: " + possibleCellsRemaining);
+        for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
+            cell.SetDirection((Direction)i, CollapseState(directions[i], ref cellsToCollapse, ref possibleCellsRemaining));
             
-        cell.set = true;
-        cell.id = currentID++;
+        cell.Set = true;
+        cell.Id = _currentID++;
 
     }
-    int Entropy(int y, int x)
+    private int Entropy(int y, int x)
     {
-        EntropyState[] state = new EntropyState[numberOfDirections];
-        for (int i = 0; i < numberOfDirections; i++)
+        EntropyState[] state = new EntropyState[_NUMBER_OF_DIRECTIONS];
+        for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
             state[i] = EntropyState.Allowed;
 
-        for (int i = 0; i < numberOfDirections; i++)
+        for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
         {
             Direction dir = (Direction)i;
             if (IsAdjacentCellSet(y, x, dir))
@@ -240,29 +240,29 @@ public class DynamicFloor : MonoBehaviour
         }
 
         int possibleResults = 1;
-        for (int i = 0; i < numberOfDirections; i++)
+        for (int i = 0; i < _NUMBER_OF_DIRECTIONS; i++)
             if (state[i] == EntropyState.Allowed)
                 possibleResults *= 2;
 
         return possibleResults;
     }
 
-    bool InBounds((int, int) position)
+    private bool InBounds((int, int) position)
     {
         int y = position.Item1;
         int x = position.Item2;
-        if (y < 0 || y >= height)
+        if (y < 0 || y >= _height)
             return false;
-        if (x < 0 || x >= width)
+        if (x < 0 || x >= _width)
             return false;
         return true;
     }
 
     private void DFS(int y, int x)
     {
-        if (visitedCells[y, x] == true)
+        if (_visitedCells[y, x] == true)
             return;
-        visitedCells[y, x] = true;
+        _visitedCells[y, x] = true;
         if (IsAdjacentCellReachable(y, x, Direction.Left))
         {
             DFS(y, x - 1);
@@ -281,52 +281,52 @@ public class DynamicFloor : MonoBehaviour
         }
     }
 
-    void SetUnreachableCellsToBlank()
+    private void SetUnreachableCellsToBlank()
     {
-        visitedCells = new bool[height, width];
+        _visitedCells = new bool[_height, _width];
 
-        for (int i = 0; i < height; i++)
-            for (int j = 0; j < width; j++)
-                visitedCells[i, j] = false;
+        for (int i = 0; i < _height; i++)
+            for (int j = 0; j < _width; j++)
+                _visitedCells[i, j] = false;
 
-        DFS(height / 2, width / 2);
+        DFS(_height / 2, _width / 2);
 
-        for (int i = 0; i < height; i++)
-            for (int j = 0; j < width; j++)
-                if (visitedCells[i, j] == false)
+        for (int i = 0; i < _height; i++)
+            for (int j = 0; j < _width; j++)
+                if (_visitedCells[i, j] == false)
                 {
-                    for(int k = 0; k < numberOfDirections; k++)
+                    for(int k = 0; k < _NUMBER_OF_DIRECTIONS; k++)
                     {
-                        cells[i, j].SetDirection((Direction)k, false);
+                        _cells[i, j].SetDirection((Direction)k, false);
                     }
                 }
     }
 
     private bool IsErrorInGeneration()
     {
-        for (int i = 0; i < height; i++)
-            for (int j = 0; j < width; j++)
-                if (cells[i, j].GetNumberOfSetDirections() == 1)
+        for (int i = 0; i < _height; i++)
+            for (int j = 0; j < _width; j++)
+                if (_cells[i, j].GetNumberOfSetDirections() == 1)
                 {
                     return true;
                 }
         return false;
     }
 
-    IEnumerator StartFloorGeneration()
+    private IEnumerator StartFloorGeneration()
     {
-        floorGenerated = false;
-        Random.InitState(seed);
+        _floorGenerated = false;
+        Random.InitState(_seed);
         yield return null;
-        while (!floorGenerated)
+        while (!_floorGenerated)
         {
             GenerateFloor();
         }
     }
 
-    void GenerateFloor()
+    private void GenerateFloor()
     {
-        currentID = 0;
+        _currentID = 0;
         List<GameObject> children = new List<GameObject>();
         foreach (Transform child in transform)
         {
@@ -343,7 +343,7 @@ public class DynamicFloor : MonoBehaviour
         Texture2D[] textures = new Texture2D[materialArraySize];
         for (int i = 0; i < materialArraySize; i++)
         {
-            materials[i] = new Material(FloorMaterial);
+            materials[i] = new Material(_floorMaterial);
             textures[i] = new Texture2D(512, 512);
         }
 
@@ -362,26 +362,26 @@ public class DynamicFloor : MonoBehaviour
         }
 
 
-        cubes = new GameObject[height, width];
-        planes = new GameObject[height, width];
-        cells = new Cell[height, width];
-        for (int i = 0; i < height; i++)
-            for (int j = 0; j < width; j++)
-                cells[i, j] = new Cell();
+        _cubes = new GameObject[_height, _width];
+        _planes = new GameObject[_height, _width];
+        _cells = new Cell[_height, _width];
+        for (int i = 0; i < _height; i++)
+            for (int j = 0; j < _width; j++)
+                _cells[i, j] = new Cell();
 
-        for (int i = 0; i < height; i++)
+        for (int i = 0; i < _height; i++)
         {
-            cells[i, 0].set = true;
-            cells[i, width - 1].set = true;
+            _cells[i, 0].Set = true;
+            _cells[i, _width - 1].Set = true;
         }
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < _width; i++)
         {
-            cells[0, i].set = true;
-            cells[height - 1, i].set = true;
+            _cells[0, i].Set = true;
+            _cells[_height - 1, i].Set = true;
         }
-        cells[height / 2, width / 2].SetDirection(Direction.Down, true);
-        cells[height / 2, width / 2].SetDirection(Direction.Up, true);
-        cells[height / 2, width / 2].set = true;
+        _cells[_height / 2, _width / 2].SetDirection(Direction.Down, true);
+        _cells[_height / 2, _width / 2].SetDirection(Direction.Up, true);
+        _cells[_height / 2, _width / 2].Set = true;
 
         int idx = 0;
         while (true)
@@ -389,11 +389,11 @@ public class DynamicFloor : MonoBehaviour
             Debug.Log("id:" + idx++);
             List<(int, int)> candidates = new List<(int, int)>();
             int leastEntropy = (1 << 30);
-            for (int i = 0; i < height; i++)
+            for (int i = 0; i < _height; i++)
             {
-                for (int j = 0; j < width; j++)
+                for (int j = 0; j < _width; j++)
                 {
-                    if (cells[i, j].set)
+                    if (_cells[i, j].Set)
                         continue;
                     int currentEntropy = Entropy(i, j);
                     if (currentEntropy < leastEntropy)
@@ -409,8 +409,8 @@ public class DynamicFloor : MonoBehaviour
                 break;
             int randomCandidateIndex = Random.Range(0, candidates.Count);
             (int, int) coordinates = candidates[randomCandidateIndex];
-            Cell randomCandidate = cells[coordinates.Item1, coordinates.Item2];
-            collapse(ref randomCandidate, coordinates.Item1, coordinates.Item2);
+            Cell randomCandidate = _cells[coordinates.Item1, coordinates.Item2];
+            Collapse(ref randomCandidate, coordinates.Item1, coordinates.Item2);
         }
         SetUnreachableCellsToBlank();
         if (IsErrorInGeneration())
@@ -419,41 +419,41 @@ public class DynamicFloor : MonoBehaviour
             return;
         }
 
-        for (int i = 0; i < height; i++)
+        for (int i = 0; i < _height; i++)
         {
-            for (int j = 0; j < width; j++)
+            for (int j = 0; j < _width; j++)
             {
-                planes[i, j] = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                planes[i, j].transform.SetParent(this.transform);
-                planes[i, j].transform.localPosition = new Vector3(i * 1, 2, j * 1);
-                planes[i, j].transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+                _planes[i, j] = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                _planes[i, j].transform.SetParent(this.transform);
+                _planes[i, j].transform.localPosition = new Vector3(i * 1, 2, j * 1);
+                _planes[i, j].transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-                int materialIdx = GetCorrectCellAsset(cells[i, j].GetDirection(Direction.Left), cells[i, j].GetDirection(Direction.Up),
-                                                    cells[i, j].GetDirection(Direction.Right), cells[i, j].GetDirection(Direction.Down)).Item1;
-                int rotation = GetCorrectCellAsset(cells[i, j].GetDirection(Direction.Left), cells[i, j].GetDirection(Direction.Up),
-                                                    cells[i, j].GetDirection(Direction.Right), cells[i, j].GetDirection(Direction.Down)).Item2;
-                planes[i, j].GetComponent<MeshRenderer>().sharedMaterial = materials[materialIdx];
-                planes[i, j].transform.eulerAngles = new Vector3(0, rotation, 0);
-                planes[i, j].name = "Floor tile";
+                int materialIdx = GetCorrectCellAsset(_cells[i, j].GetDirection(Direction.Left), _cells[i, j].GetDirection(Direction.Up),
+                                                    _cells[i, j].GetDirection(Direction.Right), _cells[i, j].GetDirection(Direction.Down)).Item1;
+                int rotation = GetCorrectCellAsset(_cells[i, j].GetDirection(Direction.Left), _cells[i, j].GetDirection(Direction.Up),
+                                                    _cells[i, j].GetDirection(Direction.Right), _cells[i, j].GetDirection(Direction.Down)).Item2;
+                _planes[i, j].GetComponent<MeshRenderer>().sharedMaterial = materials[materialIdx];
+                _planes[i, j].transform.eulerAngles = new Vector3(0, rotation, 0);
+                _planes[i, j].name = "Floor tile";
             }
         }
-        floorGenerated = true;
+        _floorGenerated = true;
     }
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
 
     }
 
-    void OnValidate()
+    private void OnValidate()
     {
         InitializeCellRules();
         StartCoroutine(nameof(StartFloorGeneration));
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
 
     }
