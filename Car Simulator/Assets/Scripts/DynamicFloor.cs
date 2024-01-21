@@ -16,6 +16,9 @@ public class DynamicFloor : MonoBehaviour
     [SerializeField]
     private int _seed = 1;
 
+    [SerializeField]
+    private bool _allowBranchingPaths = false;
+
     private GameObject[,] _cubes;
     private GameObject[,] _planes;
     private Cell[,] _cells;
@@ -38,12 +41,15 @@ public class DynamicFloor : MonoBehaviour
         _rules[1, 1, 0, 0] = (3, 180);
         _rules[0, 1, 1, 0] = (3, 270);
 
-        _rules[0, 1, 1, 1] = (4, 0);
-        _rules[1, 0, 1, 1] = (4, 90);
-        _rules[1, 1, 0, 1] = (4, 180);
-        _rules[1, 1, 1, 0] = (4, 270);
+        if (_allowBranchingPaths)
+        {
+            _rules[0, 1, 1, 1] = (4, 0);
+            _rules[1, 0, 1, 1] = (4, 90);
+            _rules[1, 1, 0, 1] = (4, 180);
+            _rules[1, 1, 1, 0] = (4, 270);
 
-        _rules[1, 1, 1, 1] = (5, 0);
+            _rules[1, 1, 1, 1] = (5, 0);
+        }
     }
 
     private (int, int) GetCorrectCellAsset(bool left, bool up, bool right, bool down)
@@ -306,10 +312,12 @@ public class DynamicFloor : MonoBehaviour
     {
         for (int i = 0; i < _height; i++)
             for (int j = 0; j < _width; j++)
-                if (_cells[i, j].GetNumberOfSetDirections() == 1)
-                {
+            {
+                int materialIdx = GetCorrectCellAsset(_cells[i, j].GetDirection(Direction.Left), _cells[i, j].GetDirection(Direction.Up),
+                                                    _cells[i, j].GetDirection(Direction.Right), _cells[i, j].GetDirection(Direction.Down)).Item1;
+                if (materialIdx == 0)
                     return true;
-                }
+            }
         return false;
     }
 
