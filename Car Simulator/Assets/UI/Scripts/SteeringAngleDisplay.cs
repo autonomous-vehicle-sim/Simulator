@@ -5,17 +5,17 @@ using TMPro;
 
 public class SteeringAngleDisplay : MonoBehaviour
 {
-    private TMP_Text steeringAngleValueObject;
-    private string angleSuffix = "°";
+    private TMP_Text _steeringAngleValueObject;
+    private string _angleSuffix = "°";
 
     private void UpdateAngle(float angle)
     {
-        steeringAngleValueObject.text = Mathf.Round(angle).ToString() + angleSuffix;
+        _steeringAngleValueObject.text = Mathf.Round(angle).ToString() + _angleSuffix;
     }
 
     private void Start()
     {
-        steeringAngleValueObject = GameObject.Find("SteeringAngleValue").GetComponent<TMP_Text>();
-        WheelController.onSteeringChange += UpdateAngle;
+        _steeringAngleValueObject = GameObject.Find("SteeringAngleValue").GetComponent<TMP_Text>();
+        WheelController.SteeringChanged += UpdateAngle;
     }
 }
