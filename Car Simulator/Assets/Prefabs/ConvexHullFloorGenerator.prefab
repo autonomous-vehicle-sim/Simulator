@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1235336842673804352}
   - component: {fileID: 1961506932191704446}
   - component: {fileID: 4193324980409391496}
-  - component: {fileID: 6955230534576985153}
+  - component: {fileID: 3949778564089912247}
   m_Layer: 0
   m_Name: ConvexHullFloorGenerator
   m_TagString: Untagged
@@ -94,7 +94,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8329994097359138727}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 7be74a7d203ed77408d81634982fc671, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1729,7 +1729,7 @@ MonoBehaviour:
   _difficulty: 0.8
   _maxDisp: 0.2
   _pushApartDistance: 0.15
---- !u!114 &6955230534576985153
+--- !u!114 &3949778564089912247
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
