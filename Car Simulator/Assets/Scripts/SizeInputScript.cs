@@ -27,6 +27,7 @@ public class SizeInputScript : MonoBehaviour
     void OnEndEditListener(string input)
     {
         bool dimensionType;
+        errorText.gameObject.SetActive(false);
         if (!int.TryParse(input, out int numericValue) || numericValue < MIN_SIZE)
         {
             inputField.text = MIN_SIZE_TEXT;

@@ -17,8 +17,8 @@ public class MapValueDisplay : MonoBehaviour
     private const int MAX_GRID_HEIGHT = 10;
     private const int MAX_GRID_WIDTH = 20;
     private const float OFFSET = 1.0f;
-    private const float CELL_WIDTH = 50.0f;
-    private const float CELL_HEIGHT = 50.0f;
+    private const float CELL_WIDTH = 41.0f;
+    private const float CELL_HEIGHT = 41.0f;
     private const float DEFAULT_ROTATE_ANGLE = 0.0f;
     private const bool DIMENSION_TYPE_HEIGHT = true;
     private int GRID_WIDTH;
