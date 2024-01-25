@@ -7,7 +7,8 @@ using UnityEngine.Splines;
 [ExecuteInEditMode]
 public class BetterDynamicFloor : MonoBehaviour
 {
-
+    [SerializeField]
+    private float _trackScale = 1;
     [SerializeField]
     private int _seed = 1;
     [SerializeField]
@@ -178,7 +179,7 @@ public class BetterDynamicFloor : MonoBehaviour
         spline = gameObject.AddComponent<SplineContainer>();
         spline.Spline.Clear();
         spline.Spline.Closed = true;
-        int pointsToInterpolate = trackCoordinates.Length * 50;
+        int pointsToInterpolate = trackCoordinates.Length * 150;
         lineRenderer.positionCount = pointsToInterpolate;
 
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
@@ -195,7 +196,7 @@ public class BetterDynamicFloor : MonoBehaviour
         {
             float x = spline.Spline.EvaluatePosition(1.0f / pointsToInterpolate * i).x;
             float y = spline.Spline.EvaluatePosition(1.0f / pointsToInterpolate * i).z;
-            lineRenderer.SetPosition(i, new Vector3(x, 0.51f, y));
+            lineRenderer.SetPosition(i, new Vector3(x * _trackScale, 0.51f, y * _trackScale));
         }
 
     }
