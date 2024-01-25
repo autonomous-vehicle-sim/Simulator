@@ -179,7 +179,7 @@ public class BetterDynamicFloor : MonoBehaviour
         spline = gameObject.AddComponent<SplineContainer>();
         spline.Spline.Clear();
         spline.Spline.Closed = true;
-        int pointsToInterpolate = trackCoordinates.Length * 150;
+        int pointsToInterpolate = trackCoordinates.Length * 500;
         lineRenderer.positionCount = pointsToInterpolate;
 
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
