@@ -174,7 +174,7 @@ public class BetterDynamicFloor : MonoBehaviour
         }
 
         SplineContainer spline = GetComponent<SplineContainer>();
-        DestroyImmediate(spline); //Can't edit it due to some strange inner unity cache invalidation, it need to be deleted and added again
+        DestroyImmediate(spline); //Can't edit it due to some strange inner unity cache invalidation, it needs to be deleted and added again
         spline = gameObject.AddComponent<SplineContainer>();
         spline.Spline.Clear();
         spline.Spline.Closed = true;
