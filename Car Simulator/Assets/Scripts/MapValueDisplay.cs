@@ -21,8 +21,8 @@ public class MapValueDisplay : MonoBehaviour
     private const float CELL_HEIGHT = 50.0f;
     private const float DEFAULT_ROTATE_ANGLE = 0.0f;
     private const bool DIMENSION_TYPE_HEIGHT = true;
-    private int GRID_WIDTH;
-    private int GRID_HEIGHT;
+    private int gridWidth;
+    private int gridHeight;
     private (string imageName, float rotationAngle)[,] mapGrid = new(string, float)[MAX_GRID_HEIGHT, MAX_GRID_WIDTH];
 
     void Start()
@@ -34,8 +34,8 @@ public class MapValueDisplay : MonoBehaviour
 
     void InitializeDefaultMapGrid()
     {
-        GRID_WIDTH = DEFAULT_GRID_WIDTH;
-        GRID_HEIGHT = DEFAULT_GRID_HEIGHT;
+        gridWidth = DEFAULT_GRID_WIDTH;
+        gridHeight = DEFAULT_GRID_HEIGHT;
         for (int i = 0; i < MAX_GRID_HEIGHT; i++)
         {
             for (int j = 0; j < MAX_GRID_WIDTH; j++)
@@ -51,19 +51,19 @@ public class MapValueDisplay : MonoBehaviour
         DeleteGrid();
         if (dimensionType == DIMENSION_TYPE_HEIGHT)
         {
-            if(size < GRID_HEIGHT)
+            if(size < gridHeight)
             {
                 RemoveRows(size);
             }
-            GRID_HEIGHT = size;
+            gridHeight = size;
         }
         else
         {
-            if (size < GRID_WIDTH)
+            if (size < gridWidth)
             {
                 RemoveColumns(size);
             }
-            GRID_WIDTH = size;
+            gridWidth = size;
         }
         GenerateGrid();
     }
@@ -78,9 +78,9 @@ public class MapValueDisplay : MonoBehaviour
 
     void RemoveRows(int newSize)
     {
-        for (int i = newSize; i < GRID_HEIGHT; i++)
+        for (int i = newSize; i < gridHeight; i++)
         {
-            for (int j = 0; j < GRID_WIDTH; j++)
+            for (int j = 0; j < gridWidth; j++)
             {
                 mapGrid[i, j] = (DEFAULT_IMAGE_NAME, DEFAULT_ROTATE_ANGLE);
             }
@@ -89,9 +89,9 @@ public class MapValueDisplay : MonoBehaviour
 
     void RemoveColumns(int newSize)
     {
-        for (int i = 0; i < GRID_HEIGHT; i++)
+        for (int i = 0; i < gridHeight; i++)
         {
-            for (int j = newSize; j < GRID_WIDTH; j++)
+            for (int j = newSize; j < gridWidth; j++)
             {
                 mapGrid[i, j] = (DEFAULT_IMAGE_NAME, DEFAULT_ROTATE_ANGLE);
             }
@@ -103,9 +103,9 @@ public class MapValueDisplay : MonoBehaviour
         int imageIndex = 0;
         string imageName;
 
-        for (int y = 0; y < GRID_HEIGHT; y++)
+        for (int y = 0; y < gridHeight; y++)
         {
-            for (int x = 0; x < GRID_WIDTH; x++)
+            for (int x = 0; x < gridWidth; x++)
             {
                 float posX = (x * CELL_WIDTH) + (x * OFFSET);
                 float posY = (-y * CELL_HEIGHT) - (y * OFFSET);
@@ -139,8 +139,8 @@ public class MapValueDisplay : MonoBehaviour
     {
         Sprite sprite = LoadSprite(imagePath);
         gameObject.GetComponent<Image>().sprite = sprite;
-        int rowPosition = imageIndex / GRID_WIDTH;
-        int columnPosition = imageIndex % GRID_WIDTH;
+        int rowPosition = imageIndex / gridWidth;
+        int columnPosition = imageIndex % gridWidth;
         RotateImage(gameObject, mapGrid[rowPosition,columnPosition].rotationAngle);
     }
 
@@ -168,8 +168,8 @@ public class MapValueDisplay : MonoBehaviour
 
     void UpdateMapSelectedImage(GameObject gameObject,int imageIndex)
     {
-        int rowPosition = imageIndex / GRID_WIDTH;
-        int columnPosition = imageIndex % GRID_WIDTH;
+        int rowPosition = imageIndex / gridWidth;
+        int columnPosition = imageIndex % gridWidth;
         string[] imageNameSplit = selectedImage.name.Split('/');
         float rotationAngle = selectedImage.transform.eulerAngles.z;
 

@@ -47,7 +47,6 @@ public class PaletteValuesDisplay : MonoBehaviour
         image.name = imagePath;
         SetImageOnGameObject(image, imagePath);
         AddButtonOnClickEvent(image);
-        Debug.Log("added listener on " + image.name);
     }
 
     GameObject CreateImage(float posX, float posY)
