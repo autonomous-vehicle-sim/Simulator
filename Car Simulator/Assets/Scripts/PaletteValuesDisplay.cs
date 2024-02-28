@@ -10,9 +10,9 @@ public class PaletteValuesDisplay : MonoBehaviour
 
     private const int GRID_WIDTH = 3;
     private const int GRID_HEIGHT = 5;
-    private const float OFFSET = 5.0f;
-    private const float CELL_WIDTH = 50.0f;
-    private const float CELL_HEIGHT = 50.0f;
+    private const float OFFSET = 7.0f;
+    private const float CELL_WIDTH = 60.0f;
+    private const float CELL_HEIGHT = 60.0f;
     private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
 
     void Start()
@@ -47,6 +47,7 @@ public class PaletteValuesDisplay : MonoBehaviour
         image.name = imagePath;
         SetImageOnGameObject(image, imagePath);
         AddButtonOnClickEvent(image);
+        Debug.Log("added listener on " + image.name);
     }
 
     GameObject CreateImage(float posX, float posY)
