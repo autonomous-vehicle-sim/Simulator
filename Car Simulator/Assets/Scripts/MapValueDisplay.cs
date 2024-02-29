@@ -4,11 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using UnityEditor;
 
 public class MapValueDisplay : MonoBehaviour
 {
     public GameObject imagePrefab;
     public Image selectedImage;
+    public Button saveButton;
+    public Button loadButton;
 
     private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
     private const string DEFAULT_IMAGE_NAME = "0_empty.png";
@@ -16,6 +19,7 @@ public class MapValueDisplay : MonoBehaviour
     private const int DEFAULT_GRID_HEIGHT = 5;
     private const int MAX_GRID_HEIGHT = 10;
     private const int MAX_GRID_WIDTH = 20;
+    private const int CELL_IMAGE_SIZE = 500;
     private const float OFFSET = 1.0f;
     private const float CELL_WIDTH = 50.0f;
     private const float CELL_HEIGHT = 50.0f;
@@ -30,6 +34,8 @@ public class MapValueDisplay : MonoBehaviour
         InitializeDefaultMapGrid();
         SizeInputScript.onEndEdit += ModifySizeOfGrid;
         GenerateGrid();
+        saveButton.onClick.AddListener(SaveImage);
+        loadButton.onClick.AddListener(LoadImage);
     }
 
     void InitializeDefaultMapGrid()
@@ -100,6 +106,7 @@ public class MapValueDisplay : MonoBehaviour
 
     void GenerateGrid()
     {
+        Debug.Log(imagePrefab.name);
         int imageIndex = 0;
         string imageName;
 
@@ -117,7 +124,7 @@ public class MapValueDisplay : MonoBehaviour
         }
     }
 
-    void DisplayPaletteValueImage(float posX, float posY, string imagePath,int imageIndex)
+    void DisplayPaletteValueImage(float posX, float posY, string imagePath, int imageIndex)
     {
         GameObject image = CreateImage(posX, posY);
         image.name = imagePath;
@@ -154,7 +161,7 @@ public class MapValueDisplay : MonoBehaviour
         return sprite;
     }
 
-    void RotateImage(GameObject gameObject,float angle)
+    void RotateImage(GameObject gameObject, float angle)
     {
         RectTransform imageRectTransform = gameObject.GetComponent<RectTransform>();
         imageRectTransform.Rotate(Vector3.forward, angle);
@@ -166,7 +173,7 @@ public class MapValueDisplay : MonoBehaviour
         button.onClick.AddListener(() => OnButtonClick(gameObject, imageIndex));
     }
 
-    void UpdateMapSelectedImage(GameObject gameObject,int imageIndex)
+    void UpdateMapSelectedImage(GameObject gameObject, int imageIndex)
     {
         int rowPosition = imageIndex / gridWidth;
         int columnPosition = imageIndex % gridWidth;
@@ -179,8 +186,102 @@ public class MapValueDisplay : MonoBehaviour
         mapGrid[rowPosition,columnPosition] = (imageNameSplit[imageNameSplit.Length-1], rotationAngle);
     }
 
-    void OnButtonClick(GameObject gameObject,int imageIndex)
+    void OnButtonClick(GameObject gameObject, int imageIndex)
     {
         UpdateMapSelectedImage(gameObject, imageIndex);
+    }
+
+    public void SaveImage()
+    {
+        int saveFileHeight = gridHeight * CELL_IMAGE_SIZE;
+        int saveFileWidth = gridWidth * CELL_IMAGE_SIZE;
+
+        Texture2D combinedImage = new Texture2D(saveFileWidth, saveFileHeight);
+
+        int yOffset = saveFileHeight - CELL_IMAGE_SIZE;
+        for (int i = 0; i < gridHeight; i++)
+        {
+            int xOffset = 0;
+            for (int j = 0; j < gridWidth; j++)
+            {
+                string imageName = mapGrid[i, j].imageName;
+                float rotationAngle = mapGrid[i, j].rotationAngle;
+
+                byte[] imageData = File.ReadAllBytes(IMAGES_DIRECTORY_PATH + imageName);
+                Texture2D texture = new Texture2D(CELL_IMAGE_SIZE, CELL_IMAGE_SIZE);
+                texture.LoadImage(imageData);
+                texture = RotateTextureByAngle(texture, (int) rotationAngle);
+
+                combinedImage.SetPixels(xOffset, yOffset, CELL_IMAGE_SIZE, CELL_IMAGE_SIZE, texture.GetPixels());
+                xOffset += texture.width;
+            }
+            yOffset -= CELL_IMAGE_SIZE;
+        }
+
+        combinedImage.Apply();
+        byte[] encodedImage = combinedImage.EncodeToJPG();
+        string savePath = getSavePathFromDialogue();
+
+        if (savePath != null)
+        {
+            File.WriteAllBytes(savePath, encodedImage);
+        }
+        
+    }
+
+    public void LoadImage()
+    {
+        Debug.Log("load");
+    }
+
+
+    private string getSavePathFromDialogue()
+    {
+        string title = "Save File";
+        string directory = "C://";
+        string defaultName = "custom_map.jpg";
+        string extension = "jpg";
+
+        return EditorUtility.SaveFilePanel(title, directory, defaultName, extension);
+    }
+
+    private Texture2D RotateTextureByAngle(Texture2D originalTexture, int angle)
+    {
+        int width = originalTexture.width;
+        int height = originalTexture.height;
+        Texture2D rotatedTexture = new Texture2D(height, width);
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                Color pixel = originalTexture.GetPixel(x, y);
+                int newX = 0, newY = 0;
+
+                switch (angle)
+                {
+                    case 0:
+                        return originalTexture;
+                    case 90:
+                        newX = y;
+                        newY = width - x - 1;
+                        break;
+
+                    case 180:
+                        newX = width - x - 1;
+                        newY = height - y - 1;
+                        break;
+
+                    case 270:
+                        newX = height - y - 1;
+                        newY = x;
+                        break;
+                }
+                rotatedTexture.SetPixel(newX, newY, pixel);
+            }
+        }
+        rotatedTexture.Apply();
+
+        return rotatedTexture;
     }
 }
