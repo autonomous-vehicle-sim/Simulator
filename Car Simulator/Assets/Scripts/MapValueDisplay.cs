@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine.Windows;
 
 public class MapValueDisplay : MonoBehaviour
 {
@@ -25,6 +26,9 @@ public class MapValueDisplay : MonoBehaviour
     private const float CELL_HEIGHT = 50.0f;
     private const float DEFAULT_ROTATE_ANGLE = 0.0f;
     private const bool DIMENSION_TYPE_HEIGHT = true;
+    private const string DEFAULT_DIALOGUE_DIRECTORY = "C://";
+    private const string DEFAULT_SAVE_FILE_NAME = "custom_map.map";
+    private const string PREFERRED_EXTENSION = "map";
     private int gridWidth;
     private int gridHeight;
     private (string imageName, float rotationAngle)[,] mapGrid = new(string, float)[MAX_GRID_HEIGHT, MAX_GRID_WIDTH];
@@ -153,7 +157,7 @@ public class MapValueDisplay : MonoBehaviour
 
     Sprite LoadSprite(string path)
     {
-        byte[] fileData = File.ReadAllBytes(path);
+        byte[] fileData = System.IO.File.ReadAllBytes(path);
         Texture2D texture = new Texture2D(2, 2);
         texture.LoadImage(fileData);
         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
@@ -207,7 +211,7 @@ public class MapValueDisplay : MonoBehaviour
                 string imageName = mapGrid[i, j].imageName;
                 float rotationAngle = mapGrid[i, j].rotationAngle;
 
-                byte[] imageData = File.ReadAllBytes(IMAGES_DIRECTORY_PATH + imageName);
+                byte[] imageData = System.IO.File.ReadAllBytes(IMAGES_DIRECTORY_PATH + imageName);
                 Texture2D texture = new Texture2D(CELL_IMAGE_SIZE, CELL_IMAGE_SIZE);
                 texture.LoadImage(imageData);
                 texture = RotateTextureByAngle(texture, (int) rotationAngle);
@@ -220,29 +224,17 @@ public class MapValueDisplay : MonoBehaviour
 
         combinedImage.Apply();
         byte[] encodedImage = combinedImage.EncodeToJPG();
-        string savePath = getSavePathFromDialogue();
+        string savePath = EditorUtility.SaveFilePanel("Save file", DEFAULT_DIALOGUE_DIRECTORY, DEFAULT_SAVE_FILE_NAME, PREFERRED_EXTENSION);
 
         if (savePath != null)
         {
-            File.WriteAllBytes(savePath, encodedImage);
+            System.IO.File.WriteAllBytes(savePath, encodedImage);
         }
-        
     }
 
     public void LoadImage()
     {
         Debug.Log("load");
-    }
-
-
-    private string getSavePathFromDialogue()
-    {
-        string title = "Save File";
-        string directory = "C://";
-        string defaultName = "custom_map.jpg";
-        string extension = "jpg";
-
-        return EditorUtility.SaveFilePanel(title, directory, defaultName, extension);
     }
 
     private Texture2D RotateTextureByAngle(Texture2D originalTexture, int angle)
@@ -262,6 +254,7 @@ public class MapValueDisplay : MonoBehaviour
                 {
                     case 0:
                         return originalTexture;
+
                     case 90:
                         newX = y;
                         newY = width - x - 1;
