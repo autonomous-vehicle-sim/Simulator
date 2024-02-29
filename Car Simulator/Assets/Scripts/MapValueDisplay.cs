@@ -1,11 +1,11 @@
-using System.IO;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine.Windows;
+using System.Xml.Serialization;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 public class MapValueDisplay : MonoBehaviour
 {
@@ -110,7 +110,6 @@ public class MapValueDisplay : MonoBehaviour
 
     void GenerateGrid()
     {
-        Debug.Log(imagePrefab.name);
         int imageIndex = 0;
         string imageName;
 
@@ -197,84 +196,27 @@ public class MapValueDisplay : MonoBehaviour
 
     public void SaveImage()
     {
-        int saveFileHeight = gridHeight * CELL_IMAGE_SIZE;
-        int saveFileWidth = gridWidth * CELL_IMAGE_SIZE;
+        string saveFilePath = EditorUtility.SaveFilePanel("Save file", DEFAULT_DIALOGUE_DIRECTORY, DEFAULT_SAVE_FILE_NAME, PREFERRED_EXTENSION);
 
-        Texture2D combinedImage = new Texture2D(saveFileWidth, saveFileHeight);
-
-        int yOffset = saveFileHeight - CELL_IMAGE_SIZE;
-        for (int i = 0; i < gridHeight; i++)
+        using (FileStream fileStream = new FileStream(saveFilePath, FileMode.Create))
         {
-            int xOffset = 0;
-            for (int j = 0; j < gridWidth; j++)
-            {
-                string imageName = mapGrid[i, j].imageName;
-                float rotationAngle = mapGrid[i, j].rotationAngle;
-
-                byte[] imageData = System.IO.File.ReadAllBytes(IMAGES_DIRECTORY_PATH + imageName);
-                Texture2D texture = new Texture2D(CELL_IMAGE_SIZE, CELL_IMAGE_SIZE);
-                texture.LoadImage(imageData);
-                texture = RotateTextureByAngle(texture, (int) rotationAngle);
-
-                combinedImage.SetPixels(xOffset, yOffset, CELL_IMAGE_SIZE, CELL_IMAGE_SIZE, texture.GetPixels());
-                xOffset += texture.width;
-            }
-            yOffset -= CELL_IMAGE_SIZE;
-        }
-
-        combinedImage.Apply();
-        byte[] encodedImage = combinedImage.EncodeToJPG();
-        string savePath = EditorUtility.SaveFilePanel("Save file", DEFAULT_DIALOGUE_DIRECTORY, DEFAULT_SAVE_FILE_NAME, PREFERRED_EXTENSION);
-
-        if (savePath != null)
-        {
-            System.IO.File.WriteAllBytes(savePath, encodedImage);
+            IFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(fileStream, mapGrid);
         }
     }
 
     public void LoadImage()
     {
-        Debug.Log("load");
-    }
+        string selectedImagePath = EditorUtility.OpenFilePanel("Load file", DEFAULT_DIALOGUE_DIRECTORY, PREFERRED_EXTENSION);
 
-    private Texture2D RotateTextureByAngle(Texture2D originalTexture, int angle)
-    {
-        int width = originalTexture.width;
-        int height = originalTexture.height;
-        Texture2D rotatedTexture = new Texture2D(height, width);
-
-        for (int x = 0; x < width; x++)
+        using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
         {
-            for (int y = 0; y < height; y++)
-            {
-                Color pixel = originalTexture.GetPixel(x, y);
-                int newX = 0, newY = 0;
-
-                switch (angle)
-                {
-                    case 0:
-                        return originalTexture;
-
-                    case 90:
-                        newX = y;
-                        newY = width - x - 1;
-                        break;
-
-                    case 180:
-                        newX = width - x - 1;
-                        newY = height - y - 1;
-                        break;
-
-                    case 270:
-                        newX = height - y - 1;
-                        newY = x;
-                        break;
-                }
-                rotatedTexture.SetPixel(newX, newY, pixel);
-            }
+            IFormatter formatter = new BinaryFormatter();
+            mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
         }
-        rotatedTexture.Apply();
 
-        return rotatedTexture;
+        DeleteGrid();
+        GenerateGrid();
     }
+
 }
