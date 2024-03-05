@@ -192,6 +192,9 @@ public class MapValueDisplay : MonoBehaviour
     void OnButtonClick(GameObject gameObject, int imageIndex)
     {
         UpdateMapSelectedImage(gameObject, imageIndex);
+        // Temporary solution - fixing unexpected behaviour while modifying rotated tile by refreshing whole grid.
+        DeleteGrid();
+        GenerateGrid();
     }
 
     public void SaveImage()
