@@ -108,7 +108,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 403057190416302412}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -31.716003, y: 3.421502, z: 50.350914}
   m_LocalScale: {x: 97.9831, y: 97.98309, z: 97.98309}
   m_ConstrainProportionsScale: 0
@@ -153,7 +153,7 @@ WheelCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_Enabled: 1
+  m_Enabled: 0
   m_ProvidesContacts: 0
 --- !u!1 &560177618461752068
 GameObject:
@@ -180,7 +180,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 560177618461752068}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 32.41707, y: 3.421502, z: 50.350914}
   m_LocalScale: {x: 97.9831, y: 97.98309, z: 97.98309}
   m_ConstrainProportionsScale: 0
@@ -225,7 +225,7 @@ WheelCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_Enabled: 1
+  m_Enabled: 0
   m_ProvidesContacts: 0
 --- !u!1 &883186050710981856
 GameObject:
@@ -558,6 +558,7 @@ GameObject:
   - component: {fileID: 7033704538522054162}
   - component: {fileID: 8467422466286924199}
   - component: {fileID: 7944760196870950634}
+  - component: {fileID: 4940537247173161297}
   m_Layer: 0
   m_Name: Car
   m_TagString: Untagged
@@ -592,7 +593,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2829787226532518041}
   serializedVersion: 4
-  m_Mass: 0.75
+  m_Mass: 1
   m_Drag: 0.3741
   m_AngularDrag: 0.003741
   m_CenterOfMass: {x: 0, y: -0.22, z: 0}
@@ -618,7 +619,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2829787226532518041}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fdef50da543aa694caa7e60832714a2c, type: 3}
   m_Name: 
@@ -627,13 +628,48 @@ MonoBehaviour:
   - LeftWheel: {fileID: 6416147925294805703}
     RightWheel: {fileID: 6667629249809431735}
     Motor: 0
-    Steering: 1
+    Steering: 0
   - LeftWheel: {fileID: 400752365211699822}
     RightWheel: {fileID: 2634680177270032357}
-    Motor: 1
+    Motor: 0
     Steering: 0
   MaxMotorTorque: 400
   MaxSteeringAngle: 45
+--- !u!114 &4940537247173161297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2829787226532518041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40e758c2b5cd0fd40ad199e8c64269ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wheels:
+  - wheelObject: {fileID: 4388557063640192542}
+    steering: 0
+    motor: 1
+  - wheelObject: {fileID: 6168449057051300645}
+    steering: 0
+    motor: 1
+  - wheelObject: {fileID: 403057190416302412}
+    steering: 1
+    motor: 0
+  - wheelObject: {fileID: 560177618461752068}
+    steering: 1
+    motor: 0
+  _wheelRayLength: 0.7
+  _suspensionRestDist: 0.7
+  _springStrength: 50
+  _springDamper: 5
+  _wheelGripFactor: 0.55
+  _wheelMass: 0.05
+  _frictionStrength: 10
+  _topSpeed: 140
+  _torque: 40
+  _steeringAngle: 55
 --- !u!1 &2844240245333345171
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,7 +730,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 36.2, y: 25, z: 120}
-  m_Center: {x: 1.47, y: 10.9, z: 7.3}
+  m_Center: {x: 0.75, y: 10.9, z: 7.3}
 --- !u!1 &3997358561116667541
 GameObject:
   m_ObjectHideFlags: 0
@@ -933,7 +969,7 @@ Camera:
   field of view: 74.062126
   orthographic: 0
   orthographic size: 5
-  m_Depth: -1
+  m_Depth: 1
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -1025,7 +1061,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4388557063640192542}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -31.716003, y: 3.4215117, z: -48.94108}
   m_LocalScale: {x: 97.9831, y: 97.98309, z: 97.98309}
   m_ConstrainProportionsScale: 0
@@ -1070,7 +1106,7 @@ WheelCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_Enabled: 1
+  m_Enabled: 0
   m_ProvidesContacts: 0
 --- !u!1 &5030133512157249527
 GameObject:
@@ -1181,7 +1217,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6168449057051300645}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 32.417107, y: 3.4215117, z: -48.94108}
   m_LocalScale: {x: 97.9831, y: 97.98309, z: 97.98309}
   m_ConstrainProportionsScale: 0
@@ -1226,7 +1262,7 @@ WheelCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_Enabled: 1
+  m_Enabled: 0
   m_ProvidesContacts: 0
 --- !u!1 &6262890305270070888
 GameObject:
