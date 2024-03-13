@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,17 +6,27 @@ using UnityEngine;
 public class CarController : MonoBehaviour
 {
     public List<Wheel> wheels;
+    public float MaxSteeringAngle = 40.0f;
+    public float TopSpeed = 60.0f;
+    public float CurrentSpeed { get; private set; }
+    public float CurrentSteeringAngle { get; private set; }
 
-    [SerializeField] private float _wheelRayLength = 0.7f;
+    public delegate void SpeedChangedEventHandler(float speed);
+    public static event SpeedChangedEventHandler SpeedChanged;
+    public delegate void SteeringChangedEventHandler(float steeringAngle);
+    public static event SteeringChangedEventHandler SteeringChanged;
+
+    [SerializeField] private float _wheelRayLength = 1.0f;
     [SerializeField] private float _suspensionRestDist = 0.7f;
-    [SerializeField] private float _springStrength = 50.0f;
-    [SerializeField] private float _springDamper = 5.0f;
-    [SerializeField] private float _wheelGripFactor = 0.8f;         // [0-1] (0 = no grip, 1 = full grip)
+    [SerializeField] private float _springStrength = 90.0f;
+    [SerializeField] private float _springDamper = 5.5f;
+    [SerializeField] private float _wheelGripFactor = 0.7f;         // [0-1] (0 = no grip, 1 = full grip)
     [SerializeField] private float _wheelMass = 0.05f;
-    [SerializeField] private float _frictionStrength = 1.0f;
-    [SerializeField] private float _topSpeed = 100.0f;
-    [SerializeField] private float _torque = 5.0f;
-    [SerializeField] private float _steeringAngle = 40.0f;
+    [SerializeField] private float _frictionStrength = 10.0f;
+    [SerializeField] private float _torque = 45.0f;
+    [SerializeField] private AnimationCurve _torqueCurve = new AnimationCurve();
+    [SerializeField] private AnimationCurve _frictionCurve = new AnimationCurve();
+    [SerializeField] private bool _drawDebugRays = false;
 
     private Rigidbody _carRigidBody;
 
@@ -23,8 +34,14 @@ public class CarController : MonoBehaviour
     // Returns a number from 0 to 1 - fraction of torque to apply.
     private float EvaluateTorqueCurve(float speedFraction)
     {
-        // todo
-        return 1 - speedFraction;
+        return _torqueCurve.Evaluate(speedFraction);
+    }
+
+    // Evaluates how much rolling friction should be applied given current car speed (fraction, from 0 to 1).
+    // Returns a number from 0 to 1 - fraction of rolling friction to apply.
+    private float EvaluateFrictionCurve(float speedFraction)
+    {
+        return _frictionCurve.Evaluate(speedFraction);
     }
 
     private void Start()
@@ -46,87 +63,86 @@ public class CarController : MonoBehaviour
                 // Wheel rotation
                 if (wheel.steering)
                 {
-                    wheelTransform.localRotation = Quaternion.Euler(Vector3.up * _steeringAngle * steeringInput);
+                    wheelTransform.localRotation = Quaternion.Euler(Vector3.up * MaxSteeringAngle * steeringInput);
                 }
 
                 bool rayDidHit = Physics.Raycast(wheelTransform.position, wheelTransform.TransformDirection(Vector3.down), out RaycastHit wheelRay, _wheelRayLength);
-                Debug.DrawRay(wheelTransform.position, wheelTransform.TransformDirection(Vector3.down) * _wheelRayLength);
-
                 if (rayDidHit)
                 {
                     Vector3 wheelWorldVelocity = _carRigidBody.GetPointVelocity(wheelTransform.position);
 
                     // Suspension force
                     Vector3 springDir = wheelTransform.up;
-
                     float springOffset = _suspensionRestDist - wheelRay.distance;
                     float springVelocity = Vector3.Dot(springDir, wheelWorldVelocity);
                     float springForce = springOffset * _springStrength - springVelocity * _springDamper;
-
                     _carRigidBody.AddForceAtPosition(springDir * springForce, wheelTransform.position);
-                    Debug.DrawRay(wheelTransform.position, springDir * springForce, Color.cyan);
 
                     // Steering force
                     Vector3 steeringDir = wheelTransform.right;
-                    
                     float steeringVelocity = Vector3.Dot(steeringDir, wheelWorldVelocity);
                     float desiredSteeringDeltaVelocity = -steeringVelocity * _wheelGripFactor;
                     float desiredSteeringAcceleration = desiredSteeringDeltaVelocity / Time.fixedDeltaTime;
-
                     _carRigidBody.AddForceAtPosition(steeringDir * _wheelMass * desiredSteeringAcceleration, wheelTransform.position);
-                    Debug.DrawRay(wheelTransform.position, steeringDir * _wheelMass * desiredSteeringAcceleration, Color.magenta);
-                }
 
-                // todo: raycast
-                Vector3 accelDir = wheelTransform.forward;
-                if (accelInput != 0.0f)
-                {
-                    // Acceleration/braking
-                    if (wheel.motor)
+                    Vector3 accelDir = wheelTransform.forward;
+                    float currentTorque = 0.0f;
+                    float carForwardSpeed = Vector3.Dot(transform.forward, _carRigidBody.velocity);
+                    float speedFraction = Mathf.Clamp01(Mathf.Abs(carForwardSpeed) / TopSpeed);          // [0-1], (0 = no speed, 1 = full speed)
+                    if (accelInput != 0.0f)
                     {
-                        float carForwardSpeed = Vector3.Dot(transform.forward, _carRigidBody.velocity);
-                        float speedFraction = Mathf.Clamp01(Mathf.Abs(carForwardSpeed) / _topSpeed);          // [0-1], (0 = no speed, 1 = full speed)
-                        float availableTorque = EvaluateTorqueCurve(speedFraction);
-                        float currentTorque = availableTorque * _torque * accelInput;
+                        // Acceleration/braking
+                        if (wheel.motor)
+                        {
+                            float availableTorque = EvaluateTorqueCurve(speedFraction);
+                            currentTorque = availableTorque * _torque * accelInput;
+                            _carRigidBody.AddForceAtPosition(accelDir * currentTorque, wheelTransform.position);
+                        }
+                    }
 
-                        _carRigidBody.AddForceAtPosition(accelDir * currentTorque, wheelTransform.position);
+                    // Friction
+                    float carSpeed = Vector3.Dot(transform.forward, _carRigidBody.velocity);
+                    float frictionForce = Mathf.Min(_frictionStrength * EvaluateFrictionCurve(speedFraction), Mathf.Abs(carSpeed));
+                    if (carSpeed < 0.0f)
+                    {
+                        frictionForce = -frictionForce;
+                    }
+                    _carRigidBody.AddForceAtPosition(-accelDir * frictionForce, wheelTransform.position);
+
+                    if (_drawDebugRays)
+                    {
+                        Debug.DrawRay(wheelTransform.position, wheelTransform.TransformDirection(Vector3.down) * _wheelRayLength);
+                        Debug.DrawRay(wheelTransform.position, springDir * springForce, Color.cyan);
+                        Debug.DrawRay(wheelTransform.position, steeringDir * _wheelMass * desiredSteeringAcceleration, Color.magenta);
+                        Debug.DrawRay(wheelTransform.position, -accelDir * frictionForce, Color.red);
                         Debug.DrawRay(wheelTransform.position, accelDir * currentTorque, Color.yellow);
                     }
                 }
-
-                // Friction
-                // todo: is being applied/calculated incorrectly
-
-                //Vector3 carDir = _carRigidBody.velocity.normalized;
-                //float carSpeed = Vector3.Dot(carDir, _carRigidBody.velocity);
-
-                Vector3 carDir = wheelTransform.forward;
-                float carSpeed = Vector3.Dot(transform.forward, _carRigidBody.velocity);
-                float frictionForce = Mathf.Min(_frictionStrength, Mathf.Abs(carSpeed));
-                if (carSpeed < 0.0f)
-                {
-                    frictionForce = -frictionForce;
-                }
-
-                _carRigidBody.AddForceAtPosition(-carDir * frictionForce, wheelTransform.position);
-                Debug.DrawRay(wheelTransform.position, -carDir * frictionForce, Color.red);
-                Debug.Log(-carDir);
             }
+
+            CurrentSpeed = _carRigidBody.velocity.magnitude;
+            CurrentSteeringAngle = MaxSteeringAngle * steeringInput;
+
+            SpeedChanged?.Invoke(CurrentSpeed);
+            SteeringChanged?.Invoke(CurrentSteeringAngle);
         }
     }
 
     private void OnDrawGizmos()
     {
-        foreach (Wheel wheel in wheels)
+        if (_drawDebugRays)
         {
-            Transform wheelTransform = wheel.wheelObject.GetComponent<Transform>();
+            foreach (Wheel wheel in wheels)
+            {
+                Transform wheelTransform = wheel.wheelObject.GetComponent<Transform>();
 
-            Gizmos.color = Color.white;
-            Gizmos.DrawSphere(wheelTransform.position, 0.03f);
+                Gizmos.color = Color.white;
+                Gizmos.DrawSphere(wheelTransform.position, 0.03f);
 
-            Vector3 suspensionRestPos = wheelTransform.position + _suspensionRestDist * wheelTransform.TransformDirection(Vector3.down);
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawSphere(suspensionRestPos, 0.03f);
+                Vector3 suspensionRestPos = wheelTransform.position + _suspensionRestDist * wheelTransform.TransformDirection(Vector3.down);
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawSphere(suspensionRestPos, 0.03f);
+            }
         }
     }
 

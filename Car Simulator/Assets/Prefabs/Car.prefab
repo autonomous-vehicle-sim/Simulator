@@ -660,16 +660,92 @@ MonoBehaviour:
   - wheelObject: {fileID: 560177618461752068}
     steering: 1
     motor: 0
-  _wheelRayLength: 0.7
+  MaxSteeringAngle: 40
+  TopSpeed: 60
+  _wheelRayLength: 1
   _suspensionRestDist: 0.7
-  _springStrength: 50
-  _springDamper: 5
-  _wheelGripFactor: 0.55
+  _springStrength: 90
+  _springDamper: 5.5
+  _wheelGripFactor: 0.7
   _wheelMass: 0.05
   _frictionStrength: 10
-  _topSpeed: 140
-  _torque: 40
-  _steeringAngle: 55
+  _torque: 45
+  _torqueCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.78773415
+      inSlope: 0.8977359
+      outSlope: 0.8977359
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.12710199
+    - serializedVersion: 3
+      time: 0.68577987
+      value: 0.9598599
+      inSlope: -0.32509044
+      outSlope: -0.32509044
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.1537684
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.8531422
+      value: 0.7876381
+      inSlope: -2.0279338
+      outSlope: -2.0279338
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.060721576
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.96602005
+      value: 0.2446328
+      inSlope: -9.480661
+      outSlope: -9.480661
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.010852975
+      outWeight: 0.2610466
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _frictionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _drawDebugRays: 0
 --- !u!1 &2844240245333345171
 GameObject:
   m_ObjectHideFlags: 0
