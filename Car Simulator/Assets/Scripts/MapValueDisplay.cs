@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
-using System.Xml.Serialization;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -20,7 +19,6 @@ public class MapValueDisplay : MonoBehaviour
     private const int DEFAULT_GRID_HEIGHT = 5;
     private const int MAX_GRID_HEIGHT = 10;
     private const int MAX_GRID_WIDTH = 20;
-    private const int CELL_IMAGE_SIZE = 500;
     private const float OFFSET = 1.0f;
     private const float CELL_WIDTH = 50.0f;
     private const float CELL_HEIGHT = 50.0f;
@@ -119,7 +117,7 @@ public class MapValueDisplay : MonoBehaviour
             {
                 float posX = (x * CELL_WIDTH) + (x * OFFSET);
                 float posY = (-y * CELL_HEIGHT) - (y * OFFSET);
-                imageName = IMAGES_DIRECTORY_PATH + mapGrid[y,x].imageName;
+                imageName = IMAGES_DIRECTORY_PATH + mapGrid[y, x].imageName;
 
                 DisplayPaletteValueImage(posX, posY, imageName, imageIndex);
                 imageIndex++;
@@ -151,7 +149,7 @@ public class MapValueDisplay : MonoBehaviour
         gameObject.GetComponent<Image>().sprite = sprite;
         int rowPosition = imageIndex / gridWidth;
         int columnPosition = imageIndex % gridWidth;
-        RotateImage(gameObject, mapGrid[rowPosition,columnPosition].rotationAngle);
+        RotateImage(gameObject, mapGrid[rowPosition, columnPosition].rotationAngle);
     }
 
     Sprite LoadSprite(string path)
@@ -164,9 +162,10 @@ public class MapValueDisplay : MonoBehaviour
         return sprite;
     }
 
-    void RotateImage(GameObject gameObject, float angle)
+    void RotateImage(GameObject gameObject, float angle, float previousAngle = 0)
     {
         RectTransform imageRectTransform = gameObject.GetComponent<RectTransform>();
+        imageRectTransform.Rotate(Vector3.back, previousAngle);
         imageRectTransform.Rotate(Vector3.forward, angle);
     }
 
@@ -185,16 +184,13 @@ public class MapValueDisplay : MonoBehaviour
 
         Sprite sprite = LoadSprite(selectedImage.name);
         gameObject.GetComponent<Image>().sprite = sprite;
-        RotateImage(gameObject, rotationAngle);
-        mapGrid[rowPosition,columnPosition] = (imageNameSplit[imageNameSplit.Length-1], rotationAngle);
+        RotateImage(gameObject, rotationAngle, mapGrid[rowPosition, columnPosition].rotationAngle);
+        mapGrid[rowPosition, columnPosition] = (imageNameSplit[imageNameSplit.Length - 1], rotationAngle);
     }
 
     void OnButtonClick(GameObject gameObject, int imageIndex)
     {
         UpdateMapSelectedImage(gameObject, imageIndex);
-        // Temporary solution - fixing unexpected behaviour while modifying rotated tile by refreshing whole grid.
-        DeleteGrid();
-        GenerateGrid();
     }
 
     public void SaveImage()
