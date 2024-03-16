@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Splines;
 
@@ -8,7 +7,7 @@ using UnityEngine.Splines;
 [ExecuteInEditMode]
 public class BetterDynamicFloor : MonoBehaviour
 {
-    //[SerializeField] to be refactored
+    [SerializeField]
     private float _trackScale = 1;
     [SerializeField]
     private int _seed = 1;
@@ -28,8 +27,12 @@ public class BetterDynamicFloor : MonoBehaviour
     private GameObject[] points;
     private (float x, float y)[] pointsCoordinates;
 
+
+
     private bool Orientation((float x, float y) p1, (float x, float y) p2, (float x, float y) p3)
     {
+        float slope1 = (p2.y - p1.y) / (p2.x - p1.x);
+        float slope2 = (p3.y - p2.y) / (p3.x - p2.x);
         float value = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
         return value < 0;
     }
@@ -100,6 +103,16 @@ public class BetterDynamicFloor : MonoBehaviour
         points = new GameObject[_numberOfPoints];
         pointsCoordinates = new (float x, float y)[_numberOfPoints];
 
+        List<GameObject> children = new List<GameObject>();
+        foreach (Transform child in transform)
+        {
+            children.Add(child.gameObject);
+        }
+
+        foreach (GameObject child in children)
+        {
+            DestroyImmediate(child);
+        }
 
         for (int i = 0; i < _numberOfPoints; i++)
         {
@@ -118,6 +131,7 @@ public class BetterDynamicFloor : MonoBehaviour
 
         List<int> convexHullPoints = new List<int>();
         ConvexHull(pointsCoordinates, ref convexHullPoints);
+        LineRenderer lineRenderer = gameObject.GetComponent<LineRenderer>();
 
         (float x, float y)[] trackCoordinates = new (float x, float y)[convexHullPoints.Count];
 
@@ -160,8 +174,14 @@ public class BetterDynamicFloor : MonoBehaviour
             PushApart(ref trackCoordinates);
         }
 
-        SplineContainer spline = gameObject.GetComponent<SplineContainer>();
+        SplineContainer spline = GetComponent<SplineContainer>();
+        DestroyImmediate(spline); //Can't edit it due to some strange inner unity cache invalidation, it needs to be deleted and added again
+        spline = gameObject.AddComponent<SplineContainer>();
         spline.Spline.Clear();
+        spline.Spline.Closed = true;
+        int pointsToInterpolate = trackCoordinates.Length * 150;
+        lineRenderer.positionCount = pointsToInterpolate;
+
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
         for (int i = 0; i < trackCoordinates.Length; i++)
         {
@@ -169,9 +189,16 @@ public class BetterDynamicFloor : MonoBehaviour
             float y = trackCoordinates[i].y;
             spline.Spline.Add(new BezierKnot(new Unity.Mathematics.float3(x, 0.51f, y), 0, 0));
         }
+
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
-        spline.Spline.Closed = true;
-        gameObject.GetComponent<SplineExtrude>().Rebuild();
+
+        for (int i = 0; i < pointsToInterpolate; i++)
+        {
+            float x = spline.Spline.EvaluatePosition(1.0f / pointsToInterpolate * i).x;
+            float y = spline.Spline.EvaluatePosition(1.0f / pointsToInterpolate * i).z;
+            lineRenderer.SetPosition(i, new Vector3(x * _trackScale, 0.51f, y * _trackScale));
+        }
+
     }
 
     // Start is called before the first frame update
