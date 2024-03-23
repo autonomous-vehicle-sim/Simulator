@@ -1925,7 +1925,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 747808315}
-  - component: {fileID: 747808314}
   m_Layer: 0
   m_Name: MainView
   m_TagString: Untagged
@@ -1933,18 +1932,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &747808314
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 747808313}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 704ac44c472bc1b4cbee736814695510, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &747808315
 Transform:
   m_ObjectHideFlags: 0
@@ -2042,7 +2029,6 @@ GameObject:
   - component: {fileID: 987610273}
   - component: {fileID: 987610272}
   - component: {fileID: 987610271}
-  - component: {fileID: 987610270}
   m_Layer: 0
   m_Name: MapPalette
   m_TagString: Untagged
@@ -2071,18 +2057,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &987610270
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 987610268}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc03951ff5ada404293018b368b8fbdc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &987610271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3511,7 +3485,6 @@ GameObject:
   - component: {fileID: 1818514150}
   - component: {fileID: 1818514149}
   - component: {fileID: 1818514148}
-  - component: {fileID: 1818514151}
   m_Layer: 0
   m_Name: Palette
   m_TagString: Untagged
@@ -3611,18 +3584,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &1818514151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818514146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc03951ff5ada404293018b368b8fbdc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
