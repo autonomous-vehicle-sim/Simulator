@@ -160,7 +160,7 @@ public class BetterDynamicFloor : MonoBehaviour
             PushApart(ref trackCoordinates);
         }
 
-        SplineContainer spline = gameObject.GetComponent<SplineContainer>();
+        SplineContainer spline = gameObject.GetComponentInChildren<SplineContainer>();
         spline.Spline.Clear();
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
         for (int i = 0; i < trackCoordinates.Length; i++)
@@ -171,7 +171,7 @@ public class BetterDynamicFloor : MonoBehaviour
         }
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
         spline.Spline.Closed = true;
-        gameObject.GetComponent<SplineExtrude>().Rebuild();
+        gameObject.GetComponentInChildren<SplineExtrude>().Rebuild();
     }
 
     // Start is called before the first frame update

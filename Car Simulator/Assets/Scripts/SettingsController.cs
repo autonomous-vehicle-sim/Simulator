@@ -10,6 +10,9 @@ public class SettingsController : MonoBehaviour
     [HideInInspector] public int ResWidth;
     [HideInInspector] public int ResHeight;
 
+    [SerializeField] private bool _setWindowModeOnStart = false;
+    [SerializeField] private bool _setResolutionOnStart = false;
+
     private const string DEFAULT_WINDOW_MODE = "Windowed";
 
     private readonly Dictionary<string, FullScreenMode> _windowModeNames = new()
@@ -25,7 +28,7 @@ public class SettingsController : MonoBehaviour
         FullScreenMode windowMode = _windowModeNames[modeName];
         Screen.fullScreenMode = windowMode;
         PlayerPrefs.SetString("windowMode", modeName);
-        Debug.Log("Setting window mode to " + windowMode);
+        Debug.Log("Setting window mode to " + modeName);
     }
 
     public void SetResolution(int width, int height)
@@ -33,6 +36,7 @@ public class SettingsController : MonoBehaviour
         Screen.SetResolution(width, height, Screen.fullScreenMode);
         PlayerPrefs.SetInt("resWidth", width);
         PlayerPrefs.SetInt("resHeight", height);
+        Debug.Log("Setting resolution to " + width + "x" + height);
     }
 
     private void Awake()
@@ -47,8 +51,21 @@ public class SettingsController : MonoBehaviour
         }
 
         string initialWindowModeName = PlayerPrefs.GetString("windowMode", DEFAULT_WINDOW_MODE);
-        SetWindowModeFromName(initialWindowModeName);
+        WindowModeName = initialWindowModeName;
+        if (_setWindowModeOnStart)
+        {
+            SetWindowModeFromName(initialWindowModeName);
+        }
 
-        // todo: read resolution from PlayerPrefs
+        ResWidth = PlayerPrefs.GetInt("resWidth", Screen.width);
+        ResHeight = PlayerPrefs.GetInt("resHeight", Screen.height);
+        if (_setResolutionOnStart && (ResWidth != Screen.width || ResHeight != Screen.height))
+        {
+            SetResolution(ResWidth, ResHeight);
+        }
+
+        Debug.Log("Initial settings: ");
+        Debug.Log("Window mode: " + WindowModeName);
+        Debug.Log("Resolution: " + ResWidth + "x" + ResHeight);
     }
 }
