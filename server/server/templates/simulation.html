@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            margin: 1%;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            height: 100vh
+        }
+
+        .camera_view {
+            display: inline-block;
+        }
+        .camera_view > img {
+            width: 33%;
+            height: auto;
+        }
+
+        section {
+            display: inline-flex;
+        }
+
+        .logs {
+            padding: 1%;
+            border: 1px solid black;
+            width: 20em;
+            height: 20em;
+            overflow-y: auto;
+        }
+
+        .controls {
+            display: inline-block;
+            margin-left: 2em;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="camera_view">
+            {% for view in camera_views %}
+                <img src="{{ view }}" alt="Camera view">
+            {% endfor %}
+        </div>
+
+        <section>
+            <div class="logs">
+                {% for log in logs %}
+                    <p>{{ log }}</p>
+                {% endfor %}
+            </div>
+
+        <div class="controls">
+            <div class="turn">
+                <button onclick="console.log(document.getElementById('turn-angle').value)">Turn by angle</button>
+                <input type=text id="turn-angle" value="0">
+            </div>
+            <div class="drive">
+                <button onclick="console.log(document.getElementById('movement-speed').value)">Drive</button>
+                <input type="text" id="movement-speed" value="0">
+            </div>
+        </div>
+        </section>
+    </main>
+</body>
+</html>

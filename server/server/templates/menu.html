@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AVS - Menu</title>
+
+    <style>
+        .simulation {
+            display: inline-block;
+            margin: 1em;
+        }
+        .simulation > a > img {
+            height: 7em;
+            width: 7em;
+        }
+        .menu {
+            margin-top: 3em;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h2>Currently running simulations:</h2>
+
+    {% for simulator in simulations %}
+        <div class="simulation">
+            <a onclick="console.log('Clicked')">
+                <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
+            </a>
+        </div>
+    {% endfor %}
+
+    <button class="menu" onclick="console.log('Start new sim')">Create new simulation</button>
+</body>
+</html>
