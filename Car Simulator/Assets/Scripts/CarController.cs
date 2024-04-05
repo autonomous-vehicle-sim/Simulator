@@ -15,6 +15,7 @@ public class CarController : MonoBehaviour
     public static event SpeedChangedEventHandler SpeedChanged;
     public delegate void SteeringChangedEventHandler(float steeringAngle);
     public static event SteeringChangedEventHandler SteeringChanged;
+    private CarControllerModifier inputModifier;
 
     [SerializeField] private float _wheelRayLength = 1.0f;
     [SerializeField] private float _suspensionRestDist = 0.7f;
@@ -47,15 +48,24 @@ public class CarController : MonoBehaviour
     private void Start()
     {
         _carRigidBody = GetComponent<Rigidbody>();
+        inputModifier = GetComponent<CarControllerModifier>();
     }
 
     private void FixedUpdate()
     {
         if (_carRigidBody != null)
         {
-            float accelInput = Input.GetAxis("Vertical");
-            float steeringInput = Input.GetAxis("Horizontal");
-
+            float accelInput, steeringInput;
+            if (inputModifier.IsSteeringControlled())
+            {
+                accelInput = inputModifier.GetAccelInput();
+                steeringInput = inputModifier.GetSteeringInput();
+            }
+            else
+            {
+                accelInput = Input.GetAxis("Vertical");
+                steeringInput = Input.GetAxis("Horizontal");
+            }
             foreach (Wheel wheel in wheels)
             {
                 Transform wheelTransform = wheel.wheelObject.GetComponent<Transform>();
