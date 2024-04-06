@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CarControllerModifier : MonoBehaviour
+public class CarInputController : MonoBehaviour
 {
     public bool steeringControlled = true;
     private float modifiedAccelInput = 0f;
@@ -15,13 +15,11 @@ public class CarControllerModifier : MonoBehaviour
 
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (steeringControlled)
         {
             timeSinceLastChanged += Time.deltaTime; 
-            Debug.Log(modifiedAccelInput);
-            Debug.Log(modifiedSteeringInput);
 
             if (timeSinceLastChanged > changedFrequency)
             {
