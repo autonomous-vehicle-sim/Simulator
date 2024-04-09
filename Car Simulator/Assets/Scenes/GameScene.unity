@@ -1752,7 +1752,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   customMessage:
   - 0 init_new 100 100
-  - 0 0 set steer 30
+  - 0 0 set engine 0,5
+  - 0 0 set steer 0,5
   sendCustomMessage: 
 --- !u!1 &832575517
 GameObject:
@@ -2787,6 +2788,7 @@ MonoBehaviour:
   connectToServer: 0
   carPrefab: {fileID: 2829787226532518041, guid: 08cad5e77897d9d4bbe2251a47ffcaf1,
     type: 3}
+  cars: []
 --- !u!1 &1289720104
 GameObject:
   m_ObjectHideFlags: 0

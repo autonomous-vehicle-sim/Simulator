@@ -734,7 +734,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4038e49d9ac1644da24390b9f9a8487, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  steeringControlled: 1
+  steeringControlled: 0
   changedFrequency: 1
 --- !u!1 &2844240245333345171
 GameObject:

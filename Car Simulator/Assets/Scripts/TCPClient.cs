@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 public class TCPClient : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class TCPClient : MonoBehaviour
     [SerializeField] public bool connectToServer;
     private bool connectedToServer = false;
     [SerializeField] GameObject carPrefab;
+    [SerializeField] List<GameObject> cars = new List<GameObject>();
 
     private TcpClient client;
     private NetworkStream stream;
@@ -105,7 +107,8 @@ public class TCPClient : MonoBehaviour
         {
             actionQueue.Enqueue(() =>
             {
-                Instantiate(carPrefab);
+                GameObject car = Instantiate(carPrefab);
+                cars.Add(car);
             });
             return;
         }
@@ -119,7 +122,22 @@ public class TCPClient : MonoBehaviour
         Debug.Assert(instance_id >= 0);
         if (arguments[2] == "set")
         {
-            //to do
+            if(arguments[3] == "steer")
+            {
+                actionQueue.Enqueue(() =>
+                {
+                    float steer = float.Parse(arguments[4]);
+                    cars[instance_id].GetComponent<CarInputController>().SetSteeringInput(steer);
+                });
+            }
+            else if(arguments[3] == "engine")
+            {
+                actionQueue.Enqueue(() =>
+                {
+                    float acceleration = float.Parse(arguments[4]);
+                    cars[instance_id].GetComponent<CarInputController>().SetAccelInput(acceleration);
+                });
+            }
             return;
         }
         if (arguments[2] == "get")

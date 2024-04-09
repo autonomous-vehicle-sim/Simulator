@@ -47,6 +47,8 @@ public class CarInputController : MonoBehaviour
         modifiedSteeringInput = steering;
     }
 
+
+
     public float GetAccelInput()
     {
         return modifiedAccelInput;
@@ -55,6 +57,16 @@ public class CarInputController : MonoBehaviour
     public float GetSteeringInput()
     {
         return modifiedSteeringInput;
+    }
+    
+    public void SetAccelInput(float accel)
+    {
+        modifiedAccelInput = accel;
+    }
+
+    public void SetSteeringInput(float steering)
+    {
+        modifiedSteeringInput = steering;
     }
     
 }
