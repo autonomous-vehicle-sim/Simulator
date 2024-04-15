@@ -126,7 +126,7 @@ public class TCPClient : MonoBehaviour
             {
                 actionQueue.Enqueue(() =>
                 {
-                    float steer = float.Parse(arguments[4]);
+                    float steer = float.Parse(arguments[4]) / 100.0f;
                     cars[instance_id].GetComponent<CarInputController>().SetSteeringInput(steer);
                 });
             }
@@ -134,18 +134,48 @@ public class TCPClient : MonoBehaviour
             {
                 actionQueue.Enqueue(() =>
                 {
-                    float acceleration = float.Parse(arguments[4]);
+                    float acceleration = float.Parse(arguments[4]) / 100.0f;
                     cars[instance_id].GetComponent<CarInputController>().SetAccelInput(acceleration);
                 });
             }
             return;
         }
-        if (arguments[2] == "get")
+        else if (arguments[2] == "get")
         {
-            //to do
+            if (arguments[3] == "steer")
+            {
+                Debug.LogError("xd driven development");
+                actionQueue.Enqueue(() =>
+                {
+                    float steer = cars[instance_id].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
+                    if (cars[instance_id].activeSelf == false)
+                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
+                    SendMessageToServer(message);
+                });
+            }
+            else if (arguments[3] == "engine")
+            {
+                actionQueue.Enqueue(() =>
+                {
+                    float steer = cars[instance_id].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
+                    if (cars[instance_id].activeSelf == false)
+                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
+                    SendMessageToServer(message);
+                });
+            }
             return;
         }
-        Debug.LogError("Invalid message sent from server");
+        else if (arguments[2] == "delete")
+        {
+            actionQueue.Enqueue(() =>
+            {
+                cars[instance_id].SetActive(false);
+            });
+        }
+        else
+            Debug.LogError("Invalid message sent from server");
 
     }
 
