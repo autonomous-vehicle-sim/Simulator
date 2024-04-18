@@ -130,12 +130,12 @@ public class TCPClient : MonoBehaviour
     private void HandleServerMessage(string message)
     {
         string[] arguments = message.Split(' ');
-        if(arguments.Length == 0)
+        if (arguments.Length == 0)
         {
             Debug.LogError("Received empty message from server");
             return;
         }
-        if(arguments[0] == "init_new_map")
+        if (arguments[0] == "init_new_map")
         {
             //to do
             return;
@@ -148,7 +148,7 @@ public class TCPClient : MonoBehaviour
         {
             actionQueue.Enqueue(() =>
             {
-                InitNewCar(0, Int32.Parse(arguments[0]),  float.Parse(arguments[2]), float.Parse(arguments[3])); // map_id, car_id, topSpeed, maxsteeringAngle
+                InitNewCar(0, Int32.Parse(arguments[0]), float.Parse(arguments[2]), float.Parse(arguments[3])); // map_id, car_id, topSpeed, maxsteeringAngle
             });
             return;
         }
@@ -162,16 +162,16 @@ public class TCPClient : MonoBehaviour
         Debug.Assert(instance_id >= 0);
         if (arguments[2] == "set")
         {
-            if(arguments[3] == "steer")
+            if (arguments[3] == "steer")
             {
                 actionQueue.Enqueue(() =>
                 {
                     float steer = float.Parse(arguments[4]) / 100.0f;
-                    if (steer > cars[instance_id].GetComponent<CarController>().GetMaxSteeringAngle() * 100.0)
+                    if (steer * 100.0 > cars[instance_id].GetComponent<CarController>().GetMaxSteeringAngle())
                     {
                         steer = cars[instance_id].GetComponent<CarController>().GetMaxSteeringAngle();
                     }
-                    if (steer < -cars[instance_id].GetComponent<CarController>().GetMaxSteeringAngle() * 100.0)
+                    if (steer * 100.0 < -cars[instance_id].GetComponent<CarController>().GetMaxSteeringAngle())
                     {
                         steer = -cars[instance_id].GetComponent<CarController>().GetMaxSteeringAngle();
                     }
@@ -179,20 +179,19 @@ public class TCPClient : MonoBehaviour
                     Debug.Log(cars[instance_id].GetComponent<CarInputController>().GetSteeringInput());
                 });
             }
-            else if(arguments[3] == "engine")
+            else if (arguments[3] == "engine")
             {
                 actionQueue.Enqueue(() =>
                 {
-                    float acceleration = float.Parse(arguments[4]);
-                    if (acceleration > cars[instance_id].GetComponent<CarController>().GetTopSpeed())
+                    float acceleration = float.Parse(arguments[4]) / 100.0f;
+                    if (acceleration * 100.0f > cars[instance_id].GetComponent<CarController>().GetTopSpeed())
                     {
                         acceleration = cars[instance_id].GetComponent<CarController>().GetTopSpeed();
                     }
-                    if (acceleration < -cars[instance_id].GetComponent<CarController>().GetTopSpeed())
+                    if (acceleration * 100.0f < -cars[instance_id].GetComponent<CarController>().GetTopSpeed())
                     {
                         acceleration = -cars[instance_id].GetComponent<CarController>().GetTopSpeed();
                     }
-                    float acceleration = float.Parse(arguments[4]) / 100.0f;
                     cars[instance_id].GetComponent<CarInputController>().SetAccelInput(acceleration);
                 });
             }
@@ -209,45 +208,45 @@ public class TCPClient : MonoBehaviour
                 }
                 );
             }
-        else if (arguments[2] == "get")
-        {
-            if (arguments[3] == "steer")
+            else if (arguments[2] == "get")
             {
-                Debug.LogError("xd driven development");
+                if (arguments[3] == "steer")
+                {
+                    Debug.LogError("xd driven development");
+                    actionQueue.Enqueue(() =>
+                    {
+                        float steer = cars[instance_id].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                        string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
+                        if (cars[instance_id].activeSelf == false)
+                            message = arguments[0] + " " + arguments[1] + " " + "deleted";
+                        SendMessageToServer(message);
+                    });
+                }
+                else if (arguments[3] == "engine")
+                {
+                    actionQueue.Enqueue(() =>
+                    {
+                        float steer = cars[instance_id].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                        string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
+                        if (cars[instance_id].activeSelf == false)
+                            message = arguments[0] + " " + arguments[1] + " " + "deleted";
+                        SendMessageToServer(message);
+                    });
+                }
+                return;
+            }
+            else if (arguments[2] == "delete")
+            {
                 actionQueue.Enqueue(() =>
                 {
-                    float steer = cars[instance_id].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
-                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                    if (cars[instance_id].activeSelf == false)
-                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
-                    SendMessageToServer(message);
+                    cars[instance_id].SetActive(false);
                 });
             }
-            else if (arguments[3] == "engine")
-            {
-                actionQueue.Enqueue(() =>
-                {
-                    float steer = cars[instance_id].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
-                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                    if (cars[instance_id].activeSelf == false)
-                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
-                    SendMessageToServer(message);
-                });
-            }
-            return;
-        }
-        else if (arguments[2] == "delete")
-        {
-            actionQueue.Enqueue(() =>
-            {
-                cars[instance_id].SetActive(false);
-            });
-        }
-        else
-            Debug.LogError("Invalid message sent from server");
+            else
+                Debug.LogError("Invalid message sent from server");
 
+        }
     }
-
     public void SendMessageToServer(string message)
     {
         if (client == null || !client.Connected)
