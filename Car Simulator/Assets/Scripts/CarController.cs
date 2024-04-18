@@ -30,6 +30,22 @@ public class CarController : MonoBehaviour
     [SerializeField] private bool _drawDebugRays = false;
 
     private Rigidbody _carRigidBody;
+    public void SetMaxSteeringAngle(float steeringAngle)
+    {
+        MaxSteeringAngle = steeringAngle;
+    }
+    public float GetMaxSteeringAngle()
+    {
+        return MaxSteeringAngle; 
+    }
+    public void SetTopSpeed(float topSpeed)
+    {
+        TopSpeed = topSpeed;
+    }
+    public float GetTopSpeed()
+    {
+        return TopSpeed;
+    }
 
     // Evaluates how much torque should be applied given current car speed (fraction, from 0 to 1).
     // Returns a number from 0 to 1 - fraction of torque to apply.
@@ -88,14 +104,14 @@ public class CarController : MonoBehaviour
                     float desiredSteeringDeltaVelocity = -steeringVelocity * _wheelGripFactor;
                     float desiredSteeringAcceleration = desiredSteeringDeltaVelocity / Time.fixedDeltaTime;
                     _carRigidBody.AddForceAtPosition(steeringDir * _wheelMass * desiredSteeringAcceleration, wheelTransform.position);
-                    Debug.Log(accelInput);
+                    //Debug.Log(accelInput);
                     Vector3 accelDir = wheelTransform.forward;
                     float currentTorque = 0.0f;
                     float carForwardSpeed = Vector3.Dot(transform.forward, _carRigidBody.velocity);
                     float speedFraction = Mathf.Clamp01(Mathf.Abs(carForwardSpeed) / TopSpeed);          // [0-1], (0 = no speed, 1 = full speed)
                     if (accelInput != 0.0f)
                     {
-                        Debug.Log(accelInput);
+                        //Debug.Log(accelInput);
                         // Acceleration/braking
                         if (wheel.motor)
                         {

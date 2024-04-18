@@ -8,7 +8,7 @@ using UnityEngine;
 public class TCPServer : MonoBehaviour
 {
     [SerializeField] private string[] customMessage = 
-        { "0 init_new 100 100", "0 0 set engine 30", "0 0 set steer 30" };
+        { "0 init_new 100 100", "0 0 set engine 30", "0 0 set steer 30", "0 0 get camera 0" };
     [SerializeField] private bool[] sendCustomMessage;
 
     private TcpListener server = null;
