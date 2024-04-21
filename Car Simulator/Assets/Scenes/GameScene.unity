@@ -919,59 +919,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &471017270
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 471017271}
-  - component: {fileID: 471017272}
-  m_Layer: 0
-  m_Name: CameraRecorder
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &471017271
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 471017270}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.7341413, y: 1.3147907, z: 2.1008453}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &471017272
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 471017270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6328fb821311fba4eb1ac0913acb7fbf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _cameras:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  _capturePath: C:/UnitySimulator/
-  _screenshotWidth: 256
-  _screenshotHeight: 256
-  _framesPerSecond: 1
-  _car: {fileID: 0}
 --- !u!1 &479386022
 GameObject:
   m_ObjectHideFlags: 0
@@ -1752,8 +1699,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   customMessage:
   - 0 init_new 100 100
-  - 0 0 set engine 0,5
-  - 0 0 set steer 0,5
+  - 0 0 set engine 30
+  - 0 0 set steer 30
+  - 0 0 delete
+  - 0 0 get steer
+  - 0 0 get engine
   sendCustomMessage: 
 --- !u!1 &832575517
 GameObject:
@@ -4992,7 +4942,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 462429713}
   - {fileID: 2139823699}
-  - {fileID: 471017271}
   - {fileID: 832575519}
   - {fileID: 1065286094}
   - {fileID: 1383774778}

@@ -9,9 +9,9 @@ using UnityEditor.Rendering;
 public class CameraRecorder : MonoBehaviour
 {
     [SerializeField] private Camera[] _cameras;
-    [SerializeField] private String _capturePath = "C:/UnitySimulator/";
+    [SerializeField] private string _capturePath = "C:/UnitySimulator/";
     [SerializeField] private int _screenshotWidth = 256, _screenshotHeight = 256;
-    [SerializeField] private float _framesPerSecond = 1;
+    [SerializeField] private float _framesPerSecond = 1.0f;
     [SerializeField] private GameObject _car;
 
     private int _framesCaptured = 0;
