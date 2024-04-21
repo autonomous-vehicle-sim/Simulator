@@ -1,15 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Splines;
+using Unity.EditorCoroutines.Editor;
+
 
 
 [ExecuteInEditMode]
-public class BetterDynamicFloor : MonoBehaviour
+public class DynamicFloor : MonoBehaviour
 {
-    //[SerializeField] to be refactored
-    private float _trackScale = 1;
     [SerializeField]
     private int _seed = 1;
     [SerializeField]
@@ -19,14 +18,15 @@ public class BetterDynamicFloor : MonoBehaviour
     private bool _addDisplacement = true;
 
     [SerializeField]
-    float _difficulty = 1f;
+    private float _difficulty = 1f;
     [SerializeField]
-    float _maxDisp = 0.10f;
+    private float _maxDisp = 0.10f;
     [SerializeField]
-    float _pushApartDistance = 0.25f;
+    private float _pushApartDistance = 0.25f;
 
     private GameObject[] points;
     private (float x, float y)[] pointsCoordinates;
+    private EditorCoroutine _generatorCoroutine;
 
     private bool Orientation((float x, float y) p1, (float x, float y) p2, (float x, float y) p3)
     {
@@ -105,6 +105,7 @@ public class BetterDynamicFloor : MonoBehaviour
         {
             //Range [0, 1] to [0.1, 0.9] without changing distribution:
             //[x, (1 + x) / y] = [0.1, 0.9] => x = 0.125, y = 1.25
+
             float x = (Random.value + 0.125f) / 1.25f - 0.5f; 
             float y = (Random.value + 0.125f) / 1.25f - 0.5f;
             pointsCoordinates[i] = (x, y);
@@ -188,6 +189,14 @@ public class BetterDynamicFloor : MonoBehaviour
 
     private void OnValidate()
     {
-        StartCoroutine(nameof(StartFloorGeneration));
+        if (gameObject.activeSelf)
+        {
+            _generatorCoroutine = EditorCoroutineUtility.StartCoroutine(StartFloorGeneration(), this);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        EditorCoroutineUtility.StopCoroutine(_generatorCoroutine);
     }
 }
