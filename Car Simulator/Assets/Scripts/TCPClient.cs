@@ -15,13 +15,15 @@ using System.Text.RegularExpressions;
 public class TCPClient : MonoBehaviour
 {
     private string serverIP = "127.0.0.1"; // Set this to your server's IP address.
-    private int serverPort = 1984;             // Set this to your server's port.
+    private const int serverPort = 1984;             // Set this to your server's port.
     private const int CARS_LAYER = 6;
-    private String pathTimestamp;
+    private string pathTimestamp;
     [SerializeField] public bool connectToServer;
     private bool connectedToServer = false;
     [SerializeField] GameObject carPrefab;
+    [SerializeField] GameObject mapPrefab;
     [SerializeField] List<GameObject> cars = new List<GameObject>();
+    [SerializeField] List<GameObject> maps = new List<GameObject>();
     private const int CAMERA_LAYER = 1;
     private TcpClient client;
     private NetworkStream stream;
@@ -50,8 +52,7 @@ public class TCPClient : MonoBehaviour
         }
         if (actionQueue.Count > 0)
         {
-            Action action;
-            actionQueue.TryDequeue(out action);
+            actionQueue.TryDequeue(out Action action);
             action.Invoke();
         }
     }
@@ -100,9 +101,10 @@ public class TCPClient : MonoBehaviour
             Debug.Log("Socket exception: " + socketException);
         }
     }
-    private void InitNewCar(int mapId, int instanceId, float topSpeed, float maxSteeringAngle)
+    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle)
     {
         GameObject car = Instantiate(carPrefab);
+        int instanceId = cars.Count;
         car.GetComponent<CarController>().SetTopSpeed(topSpeed);
         car.GetComponent<CarController>().SetMaxSteeringAngle(maxSteeringAngle);
         car.GetComponent<CameraRecorder>().SetPath(pathTimestamp, mapId.ToString(), instanceId.ToString());
@@ -112,6 +114,21 @@ public class TCPClient : MonoBehaviour
             child.gameObject.layer = LayerMask.NameToLayer("cars");
         }
         cars.Add(car);
+        car.transform.position = new Vector3(mapId * 1000, 10, 0);
+        car.GetComponent<Rigidbody>().position = new Vector3(mapId * 1000, 10, 0);
+    }
+
+    private void InitNewMap(int seed = -1)
+    {
+        if (seed == -1)
+            seed = UnityEngine.Random.Range(0, 1000 * 1000);
+        int mapId = maps.Count;
+        GameObject map = Instantiate(mapPrefab);
+        DynamicFloor dynamicFloor = map.GetComponentInChildren<DynamicFloor>();
+        dynamicFloor.SetSeed(seed);
+        maps.Add(map);
+        map.transform.position = new Vector3(mapId * 1000, 0, 0);
+        Debug.Log(1000 * mapId);
     }
     private void GetCamera(int mapId, int instanceId)
     {
@@ -123,7 +140,7 @@ public class TCPClient : MonoBehaviour
         }
         cameraRecorder.SetCar(cars[instanceId]);
         cameraRecorder.SetCameras(cameras);
-        String path = "getCamera/" + mapId.ToString() + "/" + instanceId.ToString();
+        string path = "getCamera/" + mapId.ToString() + "/" + instanceId.ToString();
         cameraRecorder.SavePhoto(path, "test"); // path, photo_name
     }
     private void HandleServerMessage(string message)
@@ -136,7 +153,13 @@ public class TCPClient : MonoBehaviour
         }
         if (arguments[0] == "init_new_map")
         {
-            //to do
+            actionQueue.Enqueue(() =>
+            {
+                int seed = -1;
+                if (arguments.Length > 1)
+                    seed = Int32.Parse(arguments[1]);
+                InitNewMap(seed);
+            });
             return;
         }
 
@@ -150,7 +173,7 @@ public class TCPClient : MonoBehaviour
                 int instanceId = cars.Count;
                 float topSpeed = float.Parse(arguments[2]);
                 float maxSteeringAngle = float.Parse(arguments[3]);
-                InitNewCar(mapId, instanceId, topSpeed, maxSteeringAngle);
+                InitNewCar(mapId, topSpeed, maxSteeringAngle);
             });
             return;
         }

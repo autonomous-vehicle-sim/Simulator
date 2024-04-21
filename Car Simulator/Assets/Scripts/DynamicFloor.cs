@@ -28,6 +28,14 @@ public class DynamicFloor : MonoBehaviour
     private (float x, float y)[] pointsCoordinates;
     private EditorCoroutine _generatorCoroutine;
 
+    public void SetSeed(int seed)
+    {
+        _seed = seed;
+        if(_generatorCoroutine != null)
+            EditorCoroutineUtility.StopCoroutine(_generatorCoroutine);
+        _generatorCoroutine = EditorCoroutineUtility.StartCoroutine(StartFloorGeneration(), this);
+    }
+
     private bool Orientation((float x, float y) p1, (float x, float y) p2, (float x, float y) p3)
     {
         float value = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
@@ -92,7 +100,13 @@ public class DynamicFloor : MonoBehaviour
 
     private IEnumerator StartFloorGeneration()
     {
-        if(_numberOfPoints < 3)
+        MeshFilter meshFilter = gameObject.GetComponentInChildren<SplineExtrude>().gameObject.GetComponent<MeshFilter>();
+        if (meshFilter.mesh == null)
+        {
+            meshFilter.mesh = new Mesh();
+        }
+
+        if (_numberOfPoints < 3)
             throw new System.Exception("Not enough points to create track");
         yield return null;
         Random.InitState(_seed);
@@ -197,6 +211,7 @@ public class DynamicFloor : MonoBehaviour
 
     private void OnDestroy()
     {
-        EditorCoroutineUtility.StopCoroutine(_generatorCoroutine);
+        if (_generatorCoroutine != null)
+            EditorCoroutineUtility.StopCoroutine(_generatorCoroutine);
     }
 }
