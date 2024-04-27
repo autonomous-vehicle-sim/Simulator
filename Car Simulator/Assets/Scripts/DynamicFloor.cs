@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
-using Unity.EditorCoroutines.Editor;
 
 
 
@@ -24,16 +23,19 @@ public class DynamicFloor : MonoBehaviour
     [SerializeField]
     private float _pushApartDistance = 0.25f;
 
+    public bool startFloorGeneration = false;
+
     private GameObject[] points;
     private (float x, float y)[] pointsCoordinates;
-    private EditorCoroutine _generatorCoroutine;
-
     public void SetSeed(int seed)
     {
         _seed = seed;
-        if(_generatorCoroutine != null)
-            EditorCoroutineUtility.StopCoroutine(_generatorCoroutine);
-        _generatorCoroutine = EditorCoroutineUtility.StartCoroutine(StartFloorGeneration(), this);
+    }
+
+    public void Generate()
+    {
+        startFloorGeneration = false;
+        StartCoroutine(StartFloorGeneration());
     }
 
     private bool Orientation((float x, float y) p1, (float x, float y) p2, (float x, float y) p3)
@@ -198,20 +200,8 @@ public class DynamicFloor : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        
+        if (startFloorGeneration)
+            Generate();
     }
 
-    private void OnValidate()
-    {
-        if (gameObject.activeSelf)
-        {
-            _generatorCoroutine = EditorCoroutineUtility.StartCoroutine(StartFloorGeneration(), this);
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (_generatorCoroutine != null)
-            EditorCoroutineUtility.StopCoroutine(_generatorCoroutine);
-    }
 }
