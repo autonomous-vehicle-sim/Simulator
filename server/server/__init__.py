@@ -2,7 +2,7 @@ import os
 
 from flask import Flask
 
-from server.api import blueprint, api
+from server.api.common import blueprint, api
 
 
 def create_app(test_config=None):
