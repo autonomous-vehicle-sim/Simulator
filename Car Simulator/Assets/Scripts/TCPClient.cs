@@ -22,7 +22,7 @@ public class TCPClient : MonoBehaviour
     private bool connectedToServer = false;
     [SerializeField] GameObject carPrefab;
     [SerializeField] GameObject mapPrefab;
-    [SerializeField] List<GameObject> cars = new List<GameObject>();
+    [SerializeField] List<List<GameObject>> cars = new List<List<GameObject>>();
     [SerializeField] List<GameObject> maps = new List<GameObject>();
     private const int CAMERA_LAYER = 1;
     private TcpClient client;
@@ -104,7 +104,7 @@ public class TCPClient : MonoBehaviour
     private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle)
     {
         GameObject car = Instantiate(carPrefab);
-        int instanceId = cars.Count;
+        int instanceId = cars[mapId].Count;
         car.GetComponent<CarController>().SetTopSpeed(topSpeed);
         car.GetComponent<CarController>().SetMaxSteeringAngle(maxSteeringAngle);
         car.GetComponent<CameraRecorder>().SetPath(pathTimestamp, mapId.ToString(), instanceId.ToString());
@@ -113,7 +113,7 @@ public class TCPClient : MonoBehaviour
         {
             child.gameObject.layer = LayerMask.NameToLayer("cars");
         }
-        cars.Add(car);
+        cars[mapId].Add(car);
         car.transform.position = new Vector3(mapId * 1000, 10, 0);
         car.GetComponent<Rigidbody>().position = new Vector3(mapId * 1000, 10, 0);
     }
@@ -126,22 +126,23 @@ public class TCPClient : MonoBehaviour
         GameObject map = Instantiate(mapPrefab);
         DynamicFloor dynamicFloor = map.GetComponentInChildren<DynamicFloor>();
         dynamicFloor.SetSeed(seed);
+        dynamicFloor.Generate();
         maps.Add(map);
         map.transform.position = new Vector3(mapId * 1000, 0, 0);
         Debug.Log(1000 * mapId);
     }
     private void GetCamera(int mapId, int instanceId)
     {
-        GameObject frameComponent = cars[instanceId].transform.GetChild(0).gameObject;
+        GameObject frameComponent = cars[mapId][instanceId].transform.GetChild(0).gameObject;
         Camera[] cameras = frameComponent.GetComponentsInChildren<Camera>();
         foreach (Camera cam in cameras)
         {
             cam.cullingMask = CAMERA_LAYER;
         }
-        cameraRecorder.SetCar(cars[instanceId]);
+        cameraRecorder.SetCar(cars[mapId][instanceId]);
         cameraRecorder.SetCameras(cameras);
         string path = "getCamera/" + mapId.ToString() + "/" + instanceId.ToString();
-        cameraRecorder.SavePhoto(path, "test"); // path, photo_name
+        cameraRecorder.SavePhoto(path, "test");
     }
     private void HandleServerMessage(string message)
     {
@@ -159,6 +160,7 @@ public class TCPClient : MonoBehaviour
                 if (arguments.Length > 1)
                     seed = Int32.Parse(arguments[1]);
                 InitNewMap(seed);
+                cars.Add(new List<GameObject>());
             });
             return;
         }
@@ -166,20 +168,26 @@ public class TCPClient : MonoBehaviour
         int mapId = Int32.Parse(arguments[0]);
         Debug.Assert(mapId >= 0);
 
+        if (arguments[1] == "delete")
+        {
+            actionQueue.Enqueue(() =>
+            {
+                foreach(GameObject car in cars[mapId]){
+                    car.SetActive(false);
+                }
+                maps[mapId].SetActive(false);
+            });
+            return;
+        }
         if (arguments[1] == "init_new")
         {
             actionQueue.Enqueue(() =>
             {
-                int instanceId = cars.Count;
+                int instanceId = cars[mapId].Count;
                 float topSpeed = float.Parse(arguments[2]);
                 float maxSteeringAngle = float.Parse(arguments[3]);
                 InitNewCar(mapId, topSpeed, maxSteeringAngle);
             });
-            return;
-        }
-        if (arguments[1] == "delete")
-        {
-            //to do
             return;
         }
 
@@ -192,16 +200,16 @@ public class TCPClient : MonoBehaviour
                 actionQueue.Enqueue(() =>
                 {
                     float steer = float.Parse(arguments[4]) / 100.0f;
-                    if (steer * 100.0 > cars[instanceId].GetComponent<CarController>().GetMaxSteeringAngle())
+                    CarController carController = cars[mapId][instanceId].GetComponent<CarController>();
+                    if (steer * 100.0 > carController.GetMaxSteeringAngle())
                     {
-                        steer = cars[instanceId].GetComponent<CarController>().GetMaxSteeringAngle();
+                        steer = carController.GetMaxSteeringAngle();
                     }
-                    if (steer * 100.0 < -cars[instanceId].GetComponent<CarController>().GetMaxSteeringAngle())
+                    if (steer * 100.0 < -carController.GetMaxSteeringAngle())
                     {
-                        steer = -cars[instanceId].GetComponent<CarController>().GetMaxSteeringAngle();
+                        steer = -carController.GetMaxSteeringAngle();
                     }
-                    cars[instanceId].GetComponent<CarInputController>().SetSteeringInput(steer);
-                    Debug.Log(cars[instanceId].GetComponent<CarInputController>().GetSteeringInput());
+                    cars[mapId][instanceId].GetComponent<CarInputController>().SetSteeringInput(steer);
                 });
             }
             else if (arguments[3] == "engine")
@@ -209,15 +217,16 @@ public class TCPClient : MonoBehaviour
                 actionQueue.Enqueue(() =>
                 {
                     float acceleration = float.Parse(arguments[4]) / 100.0f;
-                    if (acceleration * 100.0f > cars[instanceId].GetComponent<CarController>().GetTopSpeed())
+                    CarController carController = cars[mapId][instanceId].GetComponent<CarController>();
+                    if (acceleration * 100.0f > carController.GetTopSpeed())
                     {
-                        acceleration = cars[instanceId].GetComponent<CarController>().GetTopSpeed();
+                        acceleration = carController.GetTopSpeed();
                     }
-                    if (acceleration * 100.0f < -cars[instanceId].GetComponent<CarController>().GetTopSpeed())
+                    if (acceleration * 100.0f < -carController.GetTopSpeed())
                     {
-                        acceleration = -cars[instanceId].GetComponent<CarController>().GetTopSpeed();
+                        acceleration = -carController.GetTopSpeed();
                     }
-                    cars[instanceId].GetComponent<CarInputController>().SetAccelInput(acceleration);
+                    cars[mapId][instanceId].GetComponent<CarInputController>().SetAccelInput(acceleration);
                 });
             }
             return;
@@ -239,9 +248,9 @@ public class TCPClient : MonoBehaviour
                 {
                     actionQueue.Enqueue(() =>
                     {
-                        float steer = cars[instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                        float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
                         string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                        if (cars[instanceId].activeSelf == false)
+                        if (cars[mapId][instanceId].activeSelf == false)
                             message = arguments[0] + " " + arguments[1] + " " + "deleted";
                         SendMessageToServer(message);
                     });
@@ -250,9 +259,9 @@ public class TCPClient : MonoBehaviour
                 {
                     actionQueue.Enqueue(() =>
                     {
-                        float steer = cars[instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                        float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
                         string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                        if (cars[instanceId].activeSelf == false)
+                        if (cars[mapId][instanceId].activeSelf == false)
                             message = arguments[0] + " " + arguments[1] + " " + "deleted";
                         SendMessageToServer(message);
                     });
@@ -263,7 +272,7 @@ public class TCPClient : MonoBehaviour
             {
                 actionQueue.Enqueue(() =>
                 {
-                    cars[instanceId].SetActive(false);
+                    cars[mapId][instanceId].SetActive(false);
                 });
             }
             else

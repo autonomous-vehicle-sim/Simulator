@@ -102,11 +102,7 @@ public class DynamicFloor : MonoBehaviour
 
     private IEnumerator StartFloorGeneration()
     {
-        MeshFilter meshFilter = gameObject.GetComponentInChildren<SplineExtrude>().gameObject.GetComponent<MeshFilter>();
-        if (meshFilter.mesh == null)
-        {
-            meshFilter.mesh = new Mesh();
-        }
+
 
         if (_numberOfPoints < 3)
             throw new System.Exception("Not enough points to create track");
@@ -176,7 +172,6 @@ public class DynamicFloor : MonoBehaviour
         {
             PushApart(ref trackCoordinates);
         }
-
         SplineContainer spline = gameObject.GetComponentInChildren<SplineContainer>();
         spline.Spline.Clear();
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
@@ -188,13 +183,18 @@ public class DynamicFloor : MonoBehaviour
         }
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
         spline.Spline.Closed = true;
+
         gameObject.GetComponentInChildren<SplineExtrude>().Rebuild();
     }
 
     // Start is called before the first frame update
     private void Start()
     {
-        
+        MeshFilter meshFilter = gameObject.GetComponentInChildren<SplineExtrude>().gameObject.GetComponent<MeshFilter>();
+        if (meshFilter.mesh == null)
+        {
+            meshFilter.mesh = new Mesh();
+        }
     }
 
     // Update is called once per frame
