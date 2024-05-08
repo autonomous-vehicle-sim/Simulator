@@ -35,12 +35,7 @@ public class TCPClient : MonoBehaviour
     {
         pathTimestamp = DateTime.Now.ToString();
         pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
-        SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-        SerializedProperty layers = tagManager.FindProperty("layers");
-        SerializedProperty layerSP = layers.GetArrayElementAtIndex(CARS_LAYER);
-        layerSP.stringValue = "cars";
-        Physics.IgnoreLayerCollision(CARS_LAYER, CARS_LAYER, true);
-        tagManager.ApplyModifiedProperties();
+        cameraRecorder = new CameraRecorder();
     }
 
     void Update()
@@ -111,7 +106,7 @@ public class TCPClient : MonoBehaviour
         var children = car.GetComponentsInChildren<Transform>(includeInactive: true);
         foreach (Transform child in children)
         {
-            child.gameObject.layer = LayerMask.NameToLayer("cars");
+            child.gameObject.layer = LayerMask.NameToLayer("Cars");
         }
         cars[mapId].Add(car);
         car.transform.position = new Vector3(mapId * 1000, 10, 0);
@@ -139,6 +134,9 @@ public class TCPClient : MonoBehaviour
         {
             cam.cullingMask = CAMERA_LAYER;
         }
+        Debug.Log(cameraRecorder.ToString());
+        Debug.Log(cars[mapId][instanceId].ToString());
+
         cameraRecorder.SetCar(cars[mapId][instanceId]);
         cameraRecorder.SetCameras(cameras);
         string path = "getCamera/" + mapId.ToString() + "/" + instanceId.ToString();

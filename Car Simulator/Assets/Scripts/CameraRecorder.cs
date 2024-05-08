@@ -45,6 +45,9 @@ public class CameraRecorder : MonoBehaviour
     public void SetPath(string pathTimestamp, string map_id, string car_id)
     {
         _capturePath = _capturePath + pathTimestamp + '/' + map_id + "/" + car_id + '/';
+        _dataPath = _capturePath + "carData.csv";
+        System.IO.FileInfo directoryPath = new System.IO.FileInfo(_capturePath);
+        directoryPath.Directory.Create();
     }
     public void SetCar(GameObject car)
     {
