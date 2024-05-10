@@ -13,7 +13,8 @@ PORT = WS_PORT
 
 class WSConnection:
     def __init__(self):
-        self.__stop = asyncio.Future()
+        self.__loop = asyncio.new_event_loop()
+        self.__stop = self.__loop.create_future()
         self.__message_lock = threading.Lock()
         self.__websocket_server = None
         self.__message_queue = queue.Queue()
@@ -34,7 +35,10 @@ class WSConnection:
         return message
 
     async def __send_message(self, message) -> None:
-        if self.__websocket_server is not None:
+        if self.__websocket_server is None:
+            print("ERROR: Simulator is not connected")
+            raise ConnectionError("Simulator is not connected")
+        else:
             try:
                 print(f"Sending message: {message}")
                 await self.__websocket_server.send(message)
@@ -44,7 +48,8 @@ class WSConnection:
                 self.stop()
 
     def send_message(self, message) -> None:
-        asyncio.create_task(self.__send_message(message))
+        task = self.__loop.create_task(self.__send_message(message))
+        self.__loop.run_until_complete(task)
 
     async def __handle_connection(self, websocket, path) -> None:
         print("Simulator has connected")
@@ -67,8 +72,7 @@ class WSConnection:
         print("Server stopped")
 
     def start(self) -> None:
-        loop = asyncio.new_event_loop()
-        loop.create_task(self.__start_server())
+        asyncio.run_coroutine_threadsafe(self.__start_server(), self.__loop)
 
     def stop(self) -> None:
         self.__stop.set_result(None)
