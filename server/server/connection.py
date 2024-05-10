@@ -1,6 +1,7 @@
 import asyncio
 import queue
 import threading
+import traceback
 
 import websockets
 import websockets.exceptions
@@ -12,12 +13,25 @@ PORT = WS_PORT
 
 
 class WSConnection:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.__initialized = False
+        return cls._instance
+
     def __init__(self):
-        self.__loop = asyncio.new_event_loop()
-        self.__stop = self.__loop.create_future()
+        if self.__initialized:
+            return
+        self.__stop = None
         self.__message_lock = threading.Lock()
         self.__websocket_server = None
         self.__message_queue = queue.Queue()
+        self.__initialized = True
+
+    def is_running(self) -> bool:
+        return self.__stop is not None and not self.__stop.done()
 
     def get_message(self) -> str:
         self.__message_lock.acquire()
@@ -34,7 +48,7 @@ class WSConnection:
         print(f"Message: {response}")
         return message
 
-    async def __send_message(self, message) -> None:
+    async def send_message(self, message) -> None:
         if self.__websocket_server is None:
             print("ERROR: Simulator is not connected")
             raise ConnectionError("Simulator is not connected")
@@ -46,10 +60,6 @@ class WSConnection:
                 print("ERROR: Simulator has disconnected")
                 self.__websocket_server = None
                 self.stop()
-
-    def send_message(self, message) -> None:
-        task = self.__loop.create_task(self.__send_message(message))
-        self.__loop.run_until_complete(task)
 
     async def __handle_connection(self, websocket, path) -> None:
         print("Simulator has connected")
@@ -67,12 +77,19 @@ class WSConnection:
 
     async def __start_server(self) -> None:
         print("Starting server...")
-        async with websockets.serve(self.__handle_connection, IP_ADDRESS, PORT):
+        async with websockets.serve(self.__handle_connection, IP_ADDRESS, PORT) as ws:
+            print(f"Server started at {ws.sockets[0].getsockname()[0]}:{ws.sockets[0].getsockname()[1]}")
             await self.__stop
         print("Server stopped")
 
     def start(self) -> None:
-        asyncio.run_coroutine_threadsafe(self.__start_server(), self.__loop)
+        if self.is_running():
+            return
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self.__stop = loop.create_future()
+        loop.create_task(self.__start_server())
+        loop.run_forever()
 
     def stop(self) -> None:
         self.__stop.set_result(None)

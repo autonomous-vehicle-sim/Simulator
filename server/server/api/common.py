@@ -1,9 +1,5 @@
-import asyncio
-
 from flask import Blueprint
 from flask_restx import Api
-
-from server.connection import WSConnection
 
 
 class FixedApi(Api):
@@ -13,9 +9,6 @@ class FixedApi(Api):
 
         return [fix(url) for url in super().ns_urls(ns, urls)]
 
-
-websocket = WSConnection()
-websocket.start()
 
 blueprint = Blueprint('api', __name__, url_prefix='/api')
 api = FixedApi(blueprint)

@@ -1,7 +1,8 @@
 from flask import request, send_file
 from flask_restx import Resource, Namespace
 
-from server.api.common import api, websocket
+from server.api.common import api
+from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
 from server.utils import create_set_message, MessageSetType, MessageGetType, create_get_message, \
