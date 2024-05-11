@@ -42,11 +42,11 @@ class WSConnection:
 
     def send_and_get_message(self, message) -> str:
         self.__message_lock.acquire()
-        self.send_message(message)
+        asyncio.run(self.send_message(message))
         response = self.__message_queue.get()
         self.__message_lock.release()
         print(f"Message: {response}")
-        return message
+        return response
 
     async def send_message(self, message) -> None:
         if self.__websocket_server is None:
@@ -63,6 +63,7 @@ class WSConnection:
 
     async def __handle_connection(self, websocket, path) -> None:
         print("Simulator has connected")
+        await websocket.send("Connected")
         self.__websocket_server = websocket
         try:
             async for message in websocket:

@@ -1,3 +1,5 @@
+import asyncio
+
 from flask import request, send_file
 from flask_restx import Resource, Namespace
 
@@ -37,7 +39,8 @@ class InitInstance(Resource):
             max_engine = data['max_engine']
             pos_x = data['pos_x'] or 0
             pos_y = data['pos_y'] or 0
-            websocket.send_message(create_init_instance_message(map_id, max_steer, max_engine, pos_x, pos_y))
+            asyncio.run(websocket.send_message(create_init_instance_message(map_id, max_steer, max_engine,
+                                                                            pos_x, pos_y)))
             return {'message': 'Init instance command sent successfully'}, 202
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
@@ -53,7 +56,7 @@ class InitMap(Resource):
     def put(self):
         try:
             seed = request.get_json()['seed'] or -1
-            websocket.send_message(create_init_map_message(seed))
+            asyncio.run(websocket.send_message(create_init_map_message(seed)))
             return {'message': 'Map init command sent successfully'}, 202
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
@@ -98,7 +101,7 @@ class ControlEngine(Resource):
     def post(self, map_id, instance_id):
         try:
             value = request.get_json()['engine']
-            websocket.send_message(create_set_message(map_id, instance_id, MessageSetType.ENGINE, value))
+            asyncio.run(websocket.send_message(create_set_message(map_id, instance_id, MessageSetType.ENGINE, value)))
             return {'message': 'Control command sent successfully'}, 202
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
@@ -115,7 +118,7 @@ class ControlSteering(Resource):
     def post(self, map_id, instance_id):
         try:
             value = request.get_json()['steering']
-            websocket.send_message(create_set_message(map_id, instance_id, MessageSetType.STEER, value))
+            asyncio.run(websocket.send_message(create_set_message(map_id, instance_id, MessageSetType.STEER, value)))
             return {'message': 'Control command sent successfully'}, 202
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
@@ -133,7 +136,7 @@ class ControlPosition(Resource):
     def post(self, map_id, instance_id):
         try:
             value = request.get_json()['position']
-            websocket.send_message(create_set_message(map_id, instance_id, MessageSetType.POSITION, value))
+            asyncio.run(websocket.send_message(create_set_message(map_id, instance_id, MessageSetType.POSITION, value)))
             return {'message': 'Control command sent successfully'}, 202
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
