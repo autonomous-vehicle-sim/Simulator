@@ -42,7 +42,7 @@ class WSConnection:
 
     def send_and_get_message(self, message) -> str:
         self.__message_lock.acquire()
-        self.send_message(message)
+        asyncio.run(self.send_message(message))
         response = self.__message_queue.get()
         self.__message_lock.release()
         print(f"Message: {response}")
