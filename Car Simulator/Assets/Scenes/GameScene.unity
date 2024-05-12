@@ -2551,12 +2551,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b5d96c0a2968804ab4c8d74740858d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serverPort: 6000
   connectToServer: 1
   carPrefab: {fileID: 2829787226532518041, guid: 08cad5e77897d9d4bbe2251a47ffcaf1,
     type: 3}
   mapPrefab: {fileID: 690310103244710763, guid: 4b2985ae7efbd2c47ab518c81bfc33ba,
     type: 3}
-  cars: []
   maps: []
 --- !u!1 &1289720104
 GameObject:

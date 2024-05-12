@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using UnityEditor.Rendering.LookDev;
-using UnityEditor.Rendering;
 
 public class CameraRecorder : MonoBehaviour
 {

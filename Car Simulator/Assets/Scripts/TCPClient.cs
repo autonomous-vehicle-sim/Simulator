@@ -5,17 +5,12 @@ using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
-using System.Runtime.ConstrainedExecution;
-using UnityEditor;
-using static UnityEditor.Experimental.GraphView.GraphView;
-using JetBrains.Annotations;
 using System.Text.RegularExpressions;
 
 public class TCPClient : MonoBehaviour
 {
     private string serverIP = "127.0.0.1"; // Set this to your server's IP address.
-    private const int serverPort = 1984;             // Set this to your server's port.
+    public int serverPort = 1984;             // Set this to your server's port.
     private const int CARS_LAYER = 6;
     private string pathTimestamp;
     [SerializeField] public bool connectToServer;
