@@ -18,7 +18,7 @@ def create_set_message(map_id: int, instance_id: int, message_type: MessageSetTy
         raise NotImplementedError("Set position is not implemented on the server")
     if value < -100 or value > 100:
         raise ValueError("Value must be between -100 and 100")
-    return f"{map_id} {instance_id} {message_type.value} {value}"
+    return f"{map_id} {instance_id} set {message_type.name.lower()} {value}"
 
 
 def create_get_message(map_id: int, instance_id: int, message_type: MessageGetType,
@@ -26,8 +26,8 @@ def create_get_message(map_id: int, instance_id: int, message_type: MessageGetTy
     if message_type == MessageGetType.CAMERA:
         if camera_id is None or image_id is None:
             raise ValueError("Camera message requires camera_id and image_id")
-        return f"{map_id} {instance_id} {message_type.value} {camera_id} {image_id}"
-    return f"{map_id} {instance_id} {message_type.value}"
+        return f"{map_id} {instance_id} get {message_type.name.lower()} {camera_id} {image_id}"
+    return f"{map_id} {instance_id} get {message_type.name.lower()}"
 
 
 def create_delete_message(map_id: int, instance_id: int = None) -> str:
