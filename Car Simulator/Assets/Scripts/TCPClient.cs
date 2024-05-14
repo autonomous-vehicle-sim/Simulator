@@ -9,20 +9,19 @@ using System.Text.RegularExpressions;
 
 public class TCPClient : MonoBehaviour
 {
-    private string serverIP = "127.0.0.1"; // Set this to your server's IP address.
-    public int serverPort = 1984;             // Set this to your server's port.
-    private const int CARS_LAYER = 6;
+    Connection connection;
+/*    private string serverIP = "127.0.0.1"; // Set this to your server's IP address.
+    public int serverPort = 1984;             // Set this to your server's port.*/
     private string pathTimestamp;
     [SerializeField] public bool connectToServer;
-    private bool connectedToServer = false;
     [SerializeField] GameObject carPrefab;
     [SerializeField] GameObject mapPrefab;
     [SerializeField] List<List<GameObject>> cars = new List<List<GameObject>>();
     [SerializeField] List<GameObject> maps = new List<GameObject>();
     private const int CAMERA_LAYER = 1;
-    private TcpClient client;
+/*    private TcpClient client;
     private NetworkStream stream;
-    private Thread clientReceiveThread;
+    private Thread clientReceiveThread;*/
     private ConcurrentQueue<Action> actionQueue = new ConcurrentQueue<Action>();
     private CameraRecorder cameraRecorder;
 
@@ -31,15 +30,11 @@ public class TCPClient : MonoBehaviour
         pathTimestamp = DateTime.Now.ToString();
         pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
         cameraRecorder = new CameraRecorder();
+        connection = GetComponent<Connection>();
     }
 
     void Update()
     {
-        if(!connectedToServer && connectToServer)
-        {
-            ConnectToServer();
-            connectedToServer = true;
-        }
         if (actionQueue.Count > 0)
         {
             actionQueue.TryDequeue(out Action action);
@@ -47,27 +42,10 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-    void ConnectToServer()
-    {
-        try
-        {
-            client = new TcpClient(serverIP, serverPort);
-            stream = client.GetStream();
-            Debug.Log("Connected to server.");
-
-            clientReceiveThread = new Thread(new ThreadStart(ListenForData));
-            clientReceiveThread.IsBackground = true;
-            clientReceiveThread.Start();
-        }
-        catch (SocketException e)
-        {
-            Debug.LogError("SocketException: " + e.ToString());
-        }
-    }
 
     private void ListenForData()
     {
-        try
+/*        try
         {
             byte[] bytes = new byte[1024];
             while (true)
@@ -89,7 +67,7 @@ public class TCPClient : MonoBehaviour
         catch (SocketException socketException)
         {
             Debug.Log("Socket exception: " + socketException);
-        }
+        }*/
     }
     private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle)
     {
@@ -137,12 +115,18 @@ public class TCPClient : MonoBehaviour
         string path = "getCamera/" + mapId.ToString() + "/" + instanceId.ToString();
         cameraRecorder.SavePhoto(path, "test");
     }
-    private void HandleServerMessage(string message)
+    public void HandleServerMessage(string message)
     {
+        Debug.Log("Received " + message);  
         string[] arguments = message.Split(' ');
         if (arguments.Length == 0)
         {
-            Debug.LogError("Received empty message from server");
+            Debug.Log("Received empty message from server");
+            return;
+        }
+        if (arguments[0] == "Connected")
+        {
+            Debug.Log("Connected, nice");
             return;
         }
         if (arguments[0] == "init_new_map")
@@ -275,24 +259,16 @@ public class TCPClient : MonoBehaviour
     }
     public void SendMessageToServer(string message)
     {
-        if (client == null || !client.Connected)
-        {
-            Debug.LogError("Client not connected to server.");
-            return;
-        }
-
-        byte[] data = Encoding.UTF8.GetBytes(message);
-        stream.Write(data, 0, data.Length);
-        Debug.Log("Sent message to server: " + message);
+        connection.SendMessage(message);
     }
 
     void OnApplicationQuit()
     {
-        if (stream != null)
+/*        if (stream != null)
             stream.Close();
         if (client != null)
             client.Close();
         if (clientReceiveThread != null)
-            clientReceiveThread.Abort();
+            clientReceiveThread.Abort();*/
     }
 }
