@@ -157,7 +157,7 @@ class Image(Resource):
             response = websocket.send_and_get_message(create_get_message(map_id, instance_id, MessageGetType.CAMERA,
                                                                          camera_id, image_id))
             if response:
-                return send_file(response, mimetype='image/jpeg'), 200
+                return send_file(response, mimetype='image/jpeg')
             return {'message': 'Image data not found'}, 404
         except ValueError as e:
             return {'message': str(e)}, 400
