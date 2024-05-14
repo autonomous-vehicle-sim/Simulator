@@ -8,7 +8,7 @@ from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
 from server.utils import create_set_message, MessageSetType, MessageGetType, create_get_message, \
-    create_init_map_message, create_init_instance_message
+    create_init_map_message, create_init_instance_message, create_delete_message
 
 ns = Namespace('default', description='Default namespace')
 api.add_namespace(ns, '/')
@@ -159,6 +159,36 @@ class Image(Resource):
             if response:
                 return send_file(response, mimetype='image/jpeg')
             return {'message': 'Image data not found'}, 404
+        except ValueError as e:
+            return {'message': str(e)}, 400
+        except Exception as e:
+            return {'message': str(e)}, 500
+
+
+@ns.route('/delete/<int:map_id>/<int:instance_id>')
+class DeleteInstance(Resource):
+    @ns.response(202, 'Instance deleted successfully')
+    @ns.response(400, 'Requirements not met to delete instance')
+    @ns.response(500, 'Failed to delete instance')
+    def delete(self, map_id, instance_id):
+        try:
+            asyncio.run(websocket.send_message(create_delete_message(map_id, instance_id)))
+            return {'message': 'Instance delete command sent successfully'}, 202
+        except ValueError as e:
+            return {'message': str(e)}, 400
+        except Exception as e:
+            return {'message': str(e)}, 500
+
+
+@ns.route('/delete/<int:map_id>')
+class DeleteMap(Resource):
+    @ns.response(202, 'Map deleted successfully')
+    @ns.response(400, 'Requirements not met to delete map')
+    @ns.response(500, 'Failed to delete map')
+    def delete(self, map_id):
+        try:
+            asyncio.run(websocket.send_message(create_delete_message(map_id)))
+            return {'message': 'Map delete command sent successfully'}, 202
         except ValueError as e:
             return {'message': str(e)}, 400
         except Exception as e:
