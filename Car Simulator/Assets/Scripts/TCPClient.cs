@@ -194,6 +194,8 @@ public class TCPClient : MonoBehaviour
                 actionQueue.Enqueue(() =>
                 {
                     float acceleration = float.Parse(arguments[4]) / 100.0f;
+                    Debug.Log(acceleration);
+                    Debug.Log("car" + instanceId.ToString() + "set to engine" + acceleration.ToString());
                     CarController carController = cars[mapId][instanceId].GetComponent<CarController>();
                     if (acceleration * 100.0f > carController.GetTopSpeed())
                     {
@@ -204,6 +206,7 @@ public class TCPClient : MonoBehaviour
                         acceleration = -carController.GetTopSpeed();
                     }
                     cars[mapId][instanceId].GetComponent<CarInputController>().SetAccelInput(acceleration);
+                    Debug.Log("car" + instanceId.ToString() + "set to engine" + acceleration.ToString());
                 });
             }
             return;
@@ -219,47 +222,46 @@ public class TCPClient : MonoBehaviour
                 }
                 );
             }
-            else if (arguments[2] == "get")
-            {
-                if (arguments[3] == "steer")
-                {
-                    actionQueue.Enqueue(() =>
-                    {
-                        float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
-                        string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                        if (cars[mapId][instanceId].activeSelf == false)
-                            message = arguments[0] + " " + arguments[1] + " " + "deleted";
-                        SendMessageToServer(message);
-                    });
-                }
-                else if (arguments[3] == "engine")
-                {
-                    actionQueue.Enqueue(() =>
-                    {
-                        float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
-                        string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                        if (cars[mapId][instanceId].activeSelf == false)
-                            message = arguments[0] + " " + arguments[1] + " " + "deleted";
-                        SendMessageToServer(message);
-                    });
-                }
-                return;
-            }
-            else if (arguments[2] == "delete")
+        }
+        else if (arguments[2] == "get")
+        {
+            if (arguments[3] == "steer")
             {
                 actionQueue.Enqueue(() =>
                 {
-                    cars[mapId][instanceId].SetActive(false);
+                    float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
+                    if (cars[mapId][instanceId].activeSelf == false)
+                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
+                    SendMessageToServer(message);
                 });
             }
-            else
-                Debug.LogError("Invalid message sent from server");
-
+            else if (arguments[3] == "engine")
+            {
+                actionQueue.Enqueue(() =>
+                {
+                    float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
+                    if (cars[mapId][instanceId].activeSelf == false)
+                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
+                    SendMessageToServer(message);
+                });
+            }
+            return;
         }
+        else if (arguments[2] == "delete")
+        {
+            actionQueue.Enqueue(() =>
+            {
+                cars[mapId][instanceId].SetActive(false);
+            });
+        }
+        else
+            Debug.LogError("Invalid message sent from server");
     }
     public void SendMessageToServer(string message)
     {
-        connection.SendMessage(message);
+        connection.SendWebSocketMessage(message);
     }
 
     void OnApplicationQuit()
