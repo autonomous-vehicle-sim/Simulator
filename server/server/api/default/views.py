@@ -56,7 +56,9 @@ class InitMap(Resource):
     @ns.expect(InitMap)
     def put(self):
         try:
-            seed = request.get_json()['seed'] or -1
+            seed = request.get_json()['seed']
+            if seed is None:
+                seed = -1
             asyncio.run(websocket.send_message(create_init_map_message(seed)))
             return {'message': 'Map init command sent successfully'}, 202
         except (ValueError, KeyError) as e:

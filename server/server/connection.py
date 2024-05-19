@@ -68,7 +68,7 @@ class WSConnection:
         self.__websocket_server = websocket
         try:
             async for message in websocket:
-                if message.begins_with("screen"):
+                if message.startswith("screen"):
                     try:
                         frame = create_frame(message)
                         print(f"Frame created: {frame}")
