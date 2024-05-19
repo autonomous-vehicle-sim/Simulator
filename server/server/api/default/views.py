@@ -71,7 +71,7 @@ class GetSteering(Resource):
     @ns.response(500, 'Failed to fetch control data')
     def get(self, map_id, instance_id):
         try:
-            return websocket.send_and_get_message(create_get_message, map_id, instance_id, MessageGetType.STEER), 200
+            return websocket.send_and_get_message(create_get_message(map_id, instance_id, MessageGetType.STEER)), 200
         except ValueError as e:
             return {'message': str(e)}, 400
         except Exception as e:
