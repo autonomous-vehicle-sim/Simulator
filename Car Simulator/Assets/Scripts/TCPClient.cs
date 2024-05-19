@@ -16,6 +16,7 @@ public class TCPClient : MonoBehaviour
     [SerializeField] GameObject mapPrefab;
     [SerializeField] List<List<GameObject>> cars = new List<List<GameObject>>();
     [SerializeField] List<GameObject> maps = new List<GameObject>();
+    private int queuedMaps = 0;
     private const int CAMERA_LAYER = 1;
     private ConcurrentQueue<Action> actionQueue = new ConcurrentQueue<Action>();
     private CameraRecorder cameraRecorder;
@@ -37,7 +38,7 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle)
+    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle, int posX = 0, int posY = 0)
     {
         GameObject car = Instantiate(carPrefab);
         int instanceId = cars[mapId].Count;
@@ -50,8 +51,8 @@ public class TCPClient : MonoBehaviour
             child.gameObject.layer = LayerMask.NameToLayer("Cars");
         }
         cars[mapId].Add(car);
-        car.transform.position = new Vector3(mapId * 1000, 10, 0);
-        car.GetComponent<Rigidbody>().position = new Vector3(mapId * 1000, 10, 0);
+        car.transform.position = new Vector3(mapId * 1000 + posX, 10, 0 + posY);
+        car.GetComponent<Rigidbody>().position = new Vector3(mapId * 1000 + posX, 10, 0 + posY);
     }
 
     private void InitNewMap(int seed = -1)
@@ -88,6 +89,7 @@ public class TCPClient : MonoBehaviour
         }
         if (arguments[0] == "init_new_map")
         {
+            queuedMaps++;
             actionQueue.Enqueue(() =>
             {
                 int seed = -1;
@@ -100,6 +102,14 @@ public class TCPClient : MonoBehaviour
         }
 
         int mapId = Int32.Parse(arguments[0]);
+        if(mapId >= queuedMaps)
+        {
+            actionQueue.Enqueue(() =>
+            {
+                SendMessageToServer("Invalid map id provided");
+            });
+            return;
+        }
         Debug.Assert(mapId >= 0);
 
         if (arguments[1] == "delete")
@@ -120,7 +130,12 @@ public class TCPClient : MonoBehaviour
                 int instanceId = cars[mapId].Count;
                 float topSpeed = float.Parse(arguments[2]);
                 float maxSteeringAngle = float.Parse(arguments[3]);
-                InitNewCar(mapId, topSpeed, maxSteeringAngle);
+                int posX = Int32.Parse(arguments[4]);
+                int posY = Int32.Parse(arguments[5]);
+                if (topSpeed > 0 && maxSteeringAngle > 0)
+                    InitNewCar(mapId, topSpeed, maxSteeringAngle);
+                else
+                    SendMessageToServer("Invalid init car values provided");
             });
             return;
         }
