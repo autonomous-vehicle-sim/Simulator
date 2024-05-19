@@ -24,7 +24,6 @@ public class TCPClient : MonoBehaviour
     {
         pathTimestamp = DateTime.Now.ToString();
         pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
-        cameraRecorder = new CameraRecorder();
         connection = GetComponent<Connection>();
     }
 
@@ -206,7 +205,7 @@ public class TCPClient : MonoBehaviour
                 actionQueue.Enqueue(() =>
                 {
                     float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
-                    string message = "steer " + arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
                     if (cars[mapId][instanceId].activeSelf == false)
                         message = arguments[0] + " " + arguments[1] + " " + "deleted";
                     SendMessageToServer(message);
@@ -217,7 +216,7 @@ public class TCPClient : MonoBehaviour
                 actionQueue.Enqueue(() =>
                 {
                     float engine = cars[mapId][instanceId].GetComponent<CarInputController>().GetAccelInput() * 100.0f;
-                    string message = "engine " + arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + engine.ToString() + " " + DateTime.Now.ToString();
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + engine.ToString() + " " + DateTime.Now.ToString();
                     if (cars[mapId][instanceId].activeSelf == false)
                         message = arguments[0] + " " + arguments[1] + " " + "deleted";
                     SendMessageToServer(message);
