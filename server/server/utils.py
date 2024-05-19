@@ -1,4 +1,13 @@
 from enum import Enum
+from server.db.models import db, Map, Vehicle, Frame # must be imported for db.create_all
+
+
+def config_db(app, db_name):
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_name
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
 
 
 class MessageGetType(Enum):

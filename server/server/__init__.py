@@ -3,6 +3,8 @@ import os
 from flask import Flask
 
 from server.api.common import blueprint, api
+from server.consts import DB_NAME
+from server.utils import config_db
 
 
 def create_app(test_config=None):
@@ -21,6 +23,8 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    config_db(app, DB_NAME)
 
     api.init_app(app, add_specs=False)
     app.register_blueprint(blueprint)
