@@ -29,6 +29,9 @@ public class CarController : MonoBehaviour
     [SerializeField] private AnimationCurve _frictionCurve = new AnimationCurve();
     [SerializeField] private bool _drawDebugRays = false;
 
+    private int _mapId;
+    private int _carId;
+
     private Rigidbody _carRigidBody;
     public void SetMaxSteeringAngle(float steeringAngle)
     {
@@ -45,6 +48,22 @@ public class CarController : MonoBehaviour
     public float GetTopSpeed()
     {
         return TopSpeed;
+    }
+
+    public void SetMapInfo(int mapId, int carId)
+    {
+        _mapId = mapId;
+        _carId = carId;
+    }
+
+    public int GetMapId()
+    {
+        return _mapId;
+    }
+
+    public int GetCarId()
+    {
+        return _carId;
     }
 
     // Evaluates how much torque should be applied given current car speed (fraction, from 0 to 1).
@@ -66,6 +85,7 @@ public class CarController : MonoBehaviour
         _carRigidBody = GetComponent<Rigidbody>();
         inputModifier = GetComponent<CarInputController>();
     }
+
 
     private void FixedUpdate()
     {
