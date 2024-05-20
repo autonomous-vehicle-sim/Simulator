@@ -18,6 +18,7 @@ public class TCPClient : MonoBehaviour
     [SerializeField] List<GameObject> maps = new List<GameObject>();
     private int queuedMaps = 0;
     private int queuedCars = 0;
+    private const int DISTANCE_BETWEEN_MAPS = 5000;
     private ConcurrentQueue<Action> actionQueue = new ConcurrentQueue<Action>();
 
     void Start()
@@ -42,15 +43,17 @@ public class TCPClient : MonoBehaviour
         int instanceId = cars[mapId].Count;
         car.GetComponent<CarController>().SetTopSpeed(topSpeed);
         car.GetComponent<CarController>().SetMaxSteeringAngle(maxSteeringAngle);
-        car.GetComponent<CarController>().SetMapInfo(mapId, instanceId);
+        int offsetX = mapId * DISTANCE_BETWEEN_MAPS + posX;
+        int offsetY = 0 + posY;
+        car.GetComponent<CarController>().SetMapInfo(mapId, instanceId, mapId * DISTANCE_BETWEEN_MAPS, 0);
         var children = car.GetComponentsInChildren<Transform>(includeInactive: true);
         foreach (Transform child in children)
         {
             child.gameObject.layer = LayerMask.NameToLayer("Cars");
         }
         cars[mapId].Add(car);
-        car.transform.position = new Vector3(mapId * 1000 + posX, 10, 0 + posY);
-        car.GetComponent<Rigidbody>().position = new Vector3(mapId * 1000 + posX, 10, 0 + posY);
+        car.transform.position = new Vector3(mapId * DISTANCE_BETWEEN_MAPS + posX, 10, 0 + posY);
+        car.GetComponent<Rigidbody>().position = new Vector3(offsetX, 10, offsetY);
     }
 
     private void InitNewMap(int seed = -1)
@@ -63,7 +66,7 @@ public class TCPClient : MonoBehaviour
         dynamicFloor.SetSeed(seed);
         dynamicFloor.Generate();
         maps.Add(map);
-        map.transform.position = new Vector3(mapId * 1000, 0, 0);
+        map.transform.position = new Vector3(mapId * DISTANCE_BETWEEN_MAPS, 0, 0);
     }
 
     public static explicit operator TCPClient(GameObject v)

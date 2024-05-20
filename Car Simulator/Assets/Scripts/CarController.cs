@@ -31,6 +31,8 @@ public class CarController : MonoBehaviour
 
     private int _mapId;
     private int _carId;
+    private int _originX;
+    private int _originY;
 
     private Rigidbody _carRigidBody;
     public void SetMaxSteeringAngle(float steeringAngle)
@@ -50,10 +52,12 @@ public class CarController : MonoBehaviour
         return TopSpeed;
     }
 
-    public void SetMapInfo(int mapId, int carId)
+    public void SetMapInfo(int mapId, int carId, int originX, int originY)
     {
         _mapId = mapId;
         _carId = carId;
+        _originX = originX;
+        _originY = originY;
     }
 
     public int GetMapId()
@@ -94,6 +98,36 @@ public class CarController : MonoBehaviour
             float accelInput, steeringInput;
             accelInput = inputModifier.GetAccelInput();
             steeringInput = inputModifier.GetSteeringInput();
+
+            float currentX = _carRigidBody.position.x;
+            float currentY = _carRigidBody.position.y;
+            float currentZ = _carRigidBody.position.z;
+
+            if (currentX > _originX + 1000 )
+            {
+                _carRigidBody.position = new Vector3(currentX - 1750, currentY, currentZ);
+                gameObject.transform.position = new Vector3(currentX - 1750, currentY, currentZ);
+                currentX = _carRigidBody.position.x;
+            }
+
+            if (currentX < _originX - 1000)
+            {
+                _carRigidBody.position = new Vector3((int)currentX + 1750, currentY, currentZ);
+                gameObject.transform.position = new Vector3((int)currentX + 1750, currentY, currentZ);
+                currentX = _carRigidBody.position.x;
+            }
+
+            if (currentZ > _originY + 1000)
+            {
+                _carRigidBody.position = new Vector3(currentX, currentY, (int)currentZ - 1750);
+                gameObject.transform.position = new Vector3(currentX, currentY, (int)currentZ - 1750);
+            }
+
+            if (currentZ < _originY - 1000)
+            {
+                _carRigidBody.position = new Vector3(currentX, currentY, (int)currentZ + 1750);
+                gameObject.transform.position = new Vector3(currentX, currentY, (int)currentZ + 1750);
+            }
 
             Debug.Assert(wheels.Count > 0);
             foreach (Wheel wheel in wheels)
