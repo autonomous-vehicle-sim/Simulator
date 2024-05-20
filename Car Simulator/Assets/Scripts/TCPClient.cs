@@ -93,9 +93,10 @@ public class TCPClient : MonoBehaviour
                 int seed = -1;
                 if (arguments.Length > 1)
                     seed = Int32.Parse(arguments[1]);
+                int mapId = maps.Count;
                 InitNewMap(seed);
                 cars.Add(new List<GameObject>());
-                SendMessageToServer("map " + maps.Count.ToString() + " initialized");
+                SendMessageToServer("map " + mapId.ToString() + " initialized");
             });
             return;
         }
@@ -125,21 +126,22 @@ public class TCPClient : MonoBehaviour
         }
         if (arguments[1] == "init_new")
         {
+            float topSpeed = float.Parse(arguments[2]);
+            float maxSteeringAngle = float.Parse(arguments[3]);
+            if (topSpeed <= 0 || maxSteeringAngle <= 0)
+            {
+                SendMessageToServer("Invalid init car values provided");
+                return;
+            }
+            queuedCars++;
             actionQueue.Enqueue(() =>
             {
                 int instanceId = cars[mapId].Count;
-                float topSpeed = float.Parse(arguments[2]);
-                float maxSteeringAngle = float.Parse(arguments[3]);
                 int posX = Int32.Parse(arguments[4]);
                 int posY = Int32.Parse(arguments[5]);
-                if (topSpeed > 0 && maxSteeringAngle > 0)
-                {
-                    queuedCars++;
-                    InitNewCar(mapId, topSpeed, maxSteeringAngle);
-                    SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " initialized");
-                }
-                else
-                    SendMessageToServer("Invalid init car values provided");
+                InitNewCar(mapId, topSpeed, maxSteeringAngle);
+                SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " initialized");
+                    
             });
             return;
         }
@@ -173,6 +175,7 @@ public class TCPClient : MonoBehaviour
                     cars[mapId][instanceId].GetComponent<CarInputController>().SetSteeringInput(steer);
                     SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " steer set to " + steer.ToString());
                 });
+                return;
             }
             else if (arguments[3] == "engine")
             {
@@ -195,8 +198,8 @@ public class TCPClient : MonoBehaviour
                     Debug.Log("car " + instanceId.ToString() + " set to engine " + acceleration.ToString());
                     SendMessageToServer("car " + instanceId.ToString() + " engine set to " + acceleration.ToString());
                 });
+                return;
             }
-            return;
         }
         if (arguments[2] == "get")
         {
