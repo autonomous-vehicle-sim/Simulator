@@ -39,6 +39,53 @@
             margin-left: 2em;
         }
     </style>
+    <script>
+        const mapId = {{ mapId }};
+
+        function turn() {
+            const turnAngle = document.getElementById("turn-angle").value;
+            const data = {"steering": parseInt(turnAngle)};
+            const vehicleId = document.getElementById("vehicle-id").value;
+            const url = "/api/control/" + mapId + "/" + vehicleId + "/steering";
+
+            addLog("Turning by " + turnAngle + " degrees");
+            sendRequest(url, data)
+        }
+
+        function drive() {
+            const driveSpeed = document.getElementById("movement-speed").value;
+            const data = {"engine": parseInt(driveSpeed)};
+            const vehicleId = document.getElementById("vehicle-id").value;
+            const url = "/api/control/" + mapId + "/" + vehicleId + "/engine";
+
+            addLog("Speed: " + driveSpeed);
+            sendRequest(url, data)
+        }
+
+        function addLog(message) {
+            const logElement = document.createElement("p");
+            const logMessage = document.createTextNode(message);
+            logElement.appendChild(logMessage);
+
+            const logBoard = document.getElementById("logs");
+            logBoard.insertBefore(logElement, logBoard.firstChild);
+        }
+
+        function sendRequest(url, data) {
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .catch(error => {
+                alert('Error: ' + error);
+            });
+        }
+
+    </script>
 </head>
 <body>
     <main>
@@ -49,22 +96,21 @@
         </div>
 
         <section>
-            <div class="logs">
-                {% for log in logs %}
-                    <p>{{ log }}</p>
-                {% endfor %}
+            <div class="logs" id="logs">
+
             </div>
 
-        <div class="controls">
-            <div class="turn">
-                <button onclick="console.log(document.getElementById('turn-angle').value)">Turn by angle</button>
-                <input type=text id="turn-angle" value="0">
+            <div class="controls">
+                <input type="text", id="vehicle-id" required>
+                <div class="turn">
+                    <button onclick="turn()">Turn by angle</button>
+                    <input type="text" id="turn-angle" value="0">
+                </div>
+                <div class="drive">
+                    <button onclick="drive()">Drive</button>
+                    <input type="text" id="movement-speed" value="0">
+                </div>
             </div>
-            <div class="drive">
-                <button onclick="console.log(document.getElementById('movement-speed').value)">Drive</button>
-                <input type="text" id="movement-speed" value="0">
-            </div>
-        </div>
         </section>
     </main>
 </body>

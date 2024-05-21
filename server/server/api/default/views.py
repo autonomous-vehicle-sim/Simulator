@@ -1,6 +1,6 @@
 import asyncio
 
-from flask import request, send_file
+from flask import request, send_file, jsonify
 from flask_restx import Resource, Namespace
 
 from server.api.common import api
@@ -17,13 +17,13 @@ api.add_namespace(ns, '/')
 @ns.route('/is-alive')
 class IsAlive(Resource):
     def get(self):
-        return 'Flask is alive!'
+        return jsonify({"result": 'Flask is alive!'})
 
 
 @ns.route('/version')
 class Version(Resource):
     def get(self):
-        return '0.1'
+        return jsonify({"result": 'Flask is alive!'})
 
 
 @ns.route('/init/instance')
