@@ -7,7 +7,7 @@ public class ServerLaunchButton : MonoBehaviour
 {
     public void LaunchServer()
     {
-        string serverPath = Path.GetFullPath(Path.Combine(Application.dataPath, @"..\..\server"));
+        string serverPath = Path.GetFullPath(Path.Combine(Application.dataPath, @"..\server"));
         System.Diagnostics.Process.Start(serverPath + @"\launch_server.bat");
     }
 }
