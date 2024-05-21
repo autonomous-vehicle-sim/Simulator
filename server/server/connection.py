@@ -3,11 +3,13 @@ import queue
 import threading
 import traceback
 
+import requests
 import websockets
 import websockets.exceptions
 
 from server.consts import WS_ADDRESS, WS_PORT
-from server.db.dataops.frame import create_frame
+from server.config import PORT as FLASK_PORT
+from server.db.dataops.frame import create_frame_from_msg
 
 IP_ADDRESS = WS_ADDRESS
 PORT = WS_PORT
@@ -70,16 +72,18 @@ class WSConnection:
             async for message in websocket:
                 if message.startswith("screen"):
                     try:
-                        frame = create_frame(message)
+                        frame = create_frame_from_msg(message)
                         print(f"Frame created: {frame}")
                     except Exception as e:
                         print(f"Error creating frame, skipping: {e}")
                         traceback.print_exc()
                     finally:
                         continue
-                self.__message_lock.acquire()
+                elif message.startswith("engine"):
+                    pass
+                elif message.startswith("steer"):
+                    pass
                 self.__message_queue.put(message)
-                self.__message_lock.release()
         except websockets.exceptions.ConnectionClosedError:
             print("Simulator has disconnected.")
             self.__websocket_server = None
@@ -92,6 +96,7 @@ class WSConnection:
             print(f"WS server started at {ws.sockets[0].getsockname()[0]}:{ws.sockets[0].getsockname()[1]}")
             await self.__stop
         print("WS server stopped")
+        requests.post(f"http://localhost:{FLASK_PORT}/shutdown")
 
     def start(self) -> None:
         if self.is_running():

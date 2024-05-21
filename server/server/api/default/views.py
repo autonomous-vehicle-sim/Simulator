@@ -7,7 +7,7 @@ from server.api.common import api
 from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
-from server.db.dataops.frame import get_nth_frame
+from server.db.dataops.frame import get_nth_frame_by_ids
 from server.utils import create_set_message, MessageSetType, MessageGetType, create_get_message, \
     create_init_map_message, create_init_instance_message, create_delete_message
 
@@ -159,7 +159,7 @@ class Image(Resource):
     def get(self, map_id, instance_id, camera_id, image_id):
         try:
             response = None
-            frame = get_nth_frame(map_id=map_id, vehicle_id=instance_id, n=image_id)
+            frame = get_nth_frame_by_ids(map_id=map_id, vehicle_id=instance_id, n=image_id)
             if frame:
                 if camera_id == 1:
                     response = frame.path_camera1
