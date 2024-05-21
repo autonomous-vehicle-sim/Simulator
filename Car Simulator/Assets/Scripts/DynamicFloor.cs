@@ -24,6 +24,7 @@ public class DynamicFloor : MonoBehaviour
     private float _pushApartDistance = 0.25f;
 
     public bool startFloorGeneration = false;
+    public bool isMapReady { get; private set; }
 
     private GameObject[] points;
     private (float x, float y)[] pointsCoordinates;
@@ -34,6 +35,12 @@ public class DynamicFloor : MonoBehaviour
 
     public void Generate()
     {
+        MeshFilter meshFilter = gameObject.GetComponentInChildren<SplineExtrude>().gameObject.GetComponent<MeshFilter>();
+        if (meshFilter.mesh == null)
+        {
+            meshFilter.mesh = new Mesh();
+        }
+        isMapReady = false;
         startFloorGeneration = false;
         StartCoroutine(StartFloorGeneration());
     }
@@ -102,8 +109,6 @@ public class DynamicFloor : MonoBehaviour
 
     private IEnumerator StartFloorGeneration()
     {
-
-
         if (_numberOfPoints < 3)
             throw new System.Exception("Not enough points to create track");
         yield return null;
@@ -121,11 +126,6 @@ public class DynamicFloor : MonoBehaviour
             float x = (Random.value + 0.125f) / 1.25f - 0.5f; 
             float y = (Random.value + 0.125f) / 1.25f - 0.5f;
             pointsCoordinates[i] = (x, y);
-            //Spawn spheres to see where the points are
-/*            points[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere); 
-            points[i].transform.SetParent(this.transform);
-            points[i].transform.localPosition = new Vector3(x, 0.5f, y);
-            points[i].transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);*/
         }
 
 
@@ -185,11 +185,13 @@ public class DynamicFloor : MonoBehaviour
         spline.Spline.Closed = true;
 
         gameObject.GetComponentInChildren<SplineExtrude>().Rebuild();
+        isMapReady = true;
     }
 
     // Start is called before the first frame update
     private void Start()
     {
+        isMapReady = false;
         MeshFilter meshFilter = gameObject.GetComponentInChildren<SplineExtrude>().gameObject.GetComponent<MeshFilter>();
         if (meshFilter.mesh == null)
         {
