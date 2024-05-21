@@ -50,16 +50,17 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle, int posX = 0, int posY = 0)
+    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle, int posX = 0, int posZ = 0)
     {
         GameObject car = Instantiate(carPrefab);
         posX = Mathf.Clamp(posX, -500, 500);
-        posY = Mathf.Clamp(posY, -500, 500);
+        posZ = Mathf.Clamp(posZ, -500, 500);
         int instanceId = cars[mapId].Count;
         car.GetComponent<CarController>().SetTopSpeed(topSpeed);
         car.GetComponent<CarController>().SetMaxSteeringAngle(maxSteeringAngle);
         int offsetX = mapId * DISTANCE_BETWEEN_MAPS + posX;
-        int offsetY = 0 + posY;
+        int offsetZ = posZ;
+        int offsetY = 10;
         car.GetComponent<CarController>().SetMapInfo(mapId, instanceId, mapId * DISTANCE_BETWEEN_MAPS, 0);
         var children = car.GetComponentsInChildren<Transform>(includeInactive: true);
         foreach (Transform child in children)
@@ -67,8 +68,15 @@ public class TCPClient : MonoBehaviour
             child.gameObject.layer = LayerMask.NameToLayer("Cars");
         }
         cars[mapId].Add(car);
-        car.transform.position = new Vector3(mapId * DISTANCE_BETWEEN_MAPS + posX, 10, 0 + posY);
-        car.GetComponent<Rigidbody>().position = new Vector3(offsetX, 10, offsetY);
+        if(maps[mapId].GetComponentInChildren<DynamicFloor>() == null)
+        {
+            offsetX = mapId * DISTANCE_BETWEEN_MAPS - 111;
+            offsetY = 80;
+            offsetZ = 40;
+            
+        }
+        car.transform.position = new Vector3(offsetX, offsetY, offsetZ);
+        car.GetComponent<Rigidbody>().position = new Vector3(offsetX, offsetY, offsetZ);
     }
 
     private void InitNewMap(int seed = -1)
