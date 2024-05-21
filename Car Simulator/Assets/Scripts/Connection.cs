@@ -53,6 +53,7 @@ public class Connection : MonoBehaviour
         if (websocket.State == WebSocketState.Open)
         {
             await websocket.SendText(message);
+            Debug.Log("Sent message: " + message);
         }
     }
 

@@ -16,8 +16,10 @@ public class TCPClient : MonoBehaviour
     [SerializeField] GameObject mapPrefab;
     [SerializeField] List<List<GameObject>> cars = new List<List<GameObject>>();
     [SerializeField] List<GameObject> maps = new List<GameObject>();
+    private List<bool> reportedStateOfMaps = new List<bool>();
     private int queuedMaps = 0;
     private int queuedCars = 0;
+    private const int DISTANCE_BETWEEN_MAPS = 5000;
     private ConcurrentQueue<Action> actionQueue = new ConcurrentQueue<Action>();
 
     void Start()
@@ -29,6 +31,14 @@ public class TCPClient : MonoBehaviour
 
     void Update()
     {
+        for(int i = 0; i < reportedStateOfMaps.Count; i++)
+        {
+            if (!reportedStateOfMaps[i] && maps[i].GetComponentInChildren<DynamicFloor>().isMapReady)
+            {
+                reportedStateOfMaps[i] = true;
+                SendMessageToServer("map " + i.ToString() + " finished initialization");
+            }
+        }
         if (actionQueue.Count > 0)
         {
             actionQueue.TryDequeue(out Action action);
@@ -39,18 +49,22 @@ public class TCPClient : MonoBehaviour
     private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle, int posX = 0, int posY = 0)
     {
         GameObject car = Instantiate(carPrefab);
+        posX = Mathf.Clamp(posX, -500, 500);
+        posY = Mathf.Clamp(posY, -500, 500);
         int instanceId = cars[mapId].Count;
         car.GetComponent<CarController>().SetTopSpeed(topSpeed);
         car.GetComponent<CarController>().SetMaxSteeringAngle(maxSteeringAngle);
-        car.GetComponent<CarController>().SetMapInfo(mapId, instanceId);
+        int offsetX = mapId * DISTANCE_BETWEEN_MAPS + posX;
+        int offsetY = 0 + posY;
+        car.GetComponent<CarController>().SetMapInfo(mapId, instanceId, mapId * DISTANCE_BETWEEN_MAPS, 0);
         var children = car.GetComponentsInChildren<Transform>(includeInactive: true);
         foreach (Transform child in children)
         {
             child.gameObject.layer = LayerMask.NameToLayer("Cars");
         }
         cars[mapId].Add(car);
-        car.transform.position = new Vector3(mapId * 1000 + posX, 10, 0 + posY);
-        car.GetComponent<Rigidbody>().position = new Vector3(mapId * 1000 + posX, 10, 0 + posY);
+        car.transform.position = new Vector3(mapId * DISTANCE_BETWEEN_MAPS + posX, 10, 0 + posY);
+        car.GetComponent<Rigidbody>().position = new Vector3(offsetX, 10, offsetY);
     }
 
     private void InitNewMap(int seed = -1)
@@ -63,12 +77,8 @@ public class TCPClient : MonoBehaviour
         dynamicFloor.SetSeed(seed);
         dynamicFloor.Generate();
         maps.Add(map);
-        map.transform.position = new Vector3(mapId * 1000, 0, 0);
-    }
-
-    public static explicit operator TCPClient(GameObject v)
-    {
-        throw new NotImplementedException();
+        reportedStateOfMaps.Add(false);
+        map.transform.position = new Vector3(mapId * DISTANCE_BETWEEN_MAPS, 0, 0);
     }
 
     public void HandleServerMessage(string message)
@@ -93,9 +103,10 @@ public class TCPClient : MonoBehaviour
                 int seed = -1;
                 if (arguments.Length > 1)
                     seed = Int32.Parse(arguments[1]);
+                int mapId = maps.Count;
                 InitNewMap(seed);
                 cars.Add(new List<GameObject>());
-                SendMessageToServer("map " + maps.Count.ToString() + " initialized");
+                SendMessageToServer("map " + mapId.ToString() + " started initialization");
             });
             return;
         }
@@ -125,25 +136,26 @@ public class TCPClient : MonoBehaviour
         }
         if (arguments[1] == "init_new")
         {
+            float topSpeed = float.Parse(arguments[2]);
+            float maxSteeringAngle = float.Parse(arguments[3]);
+            if (topSpeed <= 0 || maxSteeringAngle <= 0)
+            {
+                SendMessageToServer("Invalid init car values provided");
+                return;
+            }
+            queuedCars++;
             actionQueue.Enqueue(() =>
             {
                 int instanceId = cars[mapId].Count;
-                float topSpeed = float.Parse(arguments[2]);
-                float maxSteeringAngle = float.Parse(arguments[3]);
                 int posX = Int32.Parse(arguments[4]);
                 int posY = Int32.Parse(arguments[5]);
-                if (topSpeed > 0 && maxSteeringAngle > 0)
-                {
-                    queuedCars++;
-                    InitNewCar(mapId, topSpeed, maxSteeringAngle);
-                    SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " initialized");
-                }
-                else
-                    SendMessageToServer("Invalid init car values provided");
+                InitNewCar(mapId, topSpeed, maxSteeringAngle);
+                SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " initialized");
+                    
             });
             return;
         }
-
+        //add checks to validate
         int instanceId = Int32.Parse(arguments[1]);
         Debug.Assert(instanceId >= 0);
         if (instanceId >= queuedCars)
@@ -173,6 +185,7 @@ public class TCPClient : MonoBehaviour
                     cars[mapId][instanceId].GetComponent<CarInputController>().SetSteeringInput(steer);
                     SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " steer set to " + steer.ToString());
                 });
+                return;
             }
             else if (arguments[3] == "engine")
             {
@@ -195,34 +208,8 @@ public class TCPClient : MonoBehaviour
                     Debug.Log("car " + instanceId.ToString() + " set to engine " + acceleration.ToString());
                     SendMessageToServer("car " + instanceId.ToString() + " engine set to " + acceleration.ToString());
                 });
+                return;
             }
-            return;
-        }
-        if (arguments[2] == "get")
-        {
-            if (arguments[3] == "steer")
-            {
-                actionQueue.Enqueue(() =>
-                {
-                    float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
-                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                    if (cars[mapId][instanceId].activeSelf == false)
-                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
-                    SendMessageToServer(message);
-                });
-            }
-            else if (arguments[3] == "engine")
-            {
-                actionQueue.Enqueue(() =>
-                {
-                    float engine = cars[mapId][instanceId].GetComponent<CarInputController>().GetAccelInput() * 100.0f;
-                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + engine.ToString() + " " + DateTime.Now.ToString();
-                    if (cars[mapId][instanceId].activeSelf == false)
-                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
-                    SendMessageToServer(message);
-                });
-            }
-            return;
         }
         else if (arguments[2] == "delete")
         {
