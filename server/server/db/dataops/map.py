@@ -2,8 +2,7 @@ from sqlalchemy.exc import DatabaseError
 
 from server.db.models import Map, db
 
-
-def create_map(seed) -> Map:
+def create_map(seed: int) -> Map:
     map_obj = Map(seed=seed)
     db.session.add(map_obj)
     try:

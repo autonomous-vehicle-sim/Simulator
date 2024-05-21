@@ -3,11 +3,14 @@ import queue
 import threading
 import traceback
 
+import requests
 import websockets
 import websockets.exceptions
 
 from server.consts import WS_ADDRESS, WS_PORT
-from server.db.dataops.frame import create_frame
+from server.config import PORT as FLASK_PORT
+from server.db.dataops.frame import create_frame_from_msg
+from server.db.dataops.vehicle import update_vehicle_from_msg
 
 IP_ADDRESS = WS_ADDRESS
 PORT = WS_PORT
@@ -41,13 +44,19 @@ class WSConnection:
         print(f"Message: {message}")
         return message
 
-    def send_and_get_message(self, message) -> str:
+    def send_and_get_message(self, message, expected_msg: int = 1) -> list[str] | str:
+        responses = []
         self.__message_lock.acquire()
         asyncio.run(self.send_message(message))
-        response = self.__message_queue.get()
+        for _ in range(expected_msg):
+            response = self.__message_queue.get()
+            responses.append(response)
         self.__message_lock.release()
-        print(f"Message: {response}")
-        return response
+        if expected_msg == 1:
+            print(f"Message: {response}")
+            return response
+        print(f"Messages: {responses}")
+        return responses
 
     async def send_message(self, message) -> None:
         if self.__websocket_server is None:
@@ -70,16 +79,23 @@ class WSConnection:
             async for message in websocket:
                 if message.startswith("screen"):
                     try:
-                        frame = create_frame(message)
+                        frame = create_frame_from_msg(message)
                         print(f"Frame created: {frame}")
                     except Exception as e:
                         print(f"Error creating frame, skipping: {e}")
                         traceback.print_exc()
                     finally:
                         continue
-                self.__message_lock.acquire()
+                elif message.startswith("engine") or message.startswith("steer"):
+                    try:
+                        update_vehicle_from_msg(message)
+                        print(f"Vehicle updated")
+                    except Exception as e:
+                        print(f"Error updating vehicle, skipping: {e}")
+                        traceback.print_exc()
+                    finally:
+                        continue
                 self.__message_queue.put(message)
-                self.__message_lock.release()
         except websockets.exceptions.ConnectionClosedError:
             print("Simulator has disconnected.")
             self.__websocket_server = None
@@ -91,7 +107,8 @@ class WSConnection:
         async with websockets.serve(self.__handle_connection, IP_ADDRESS, PORT) as ws:
             print(f"WS server started at {ws.sockets[0].getsockname()[0]}:{ws.sockets[0].getsockname()[1]}")
             await self.__stop
-        print("WS server stopped")
+        print("WS server stopped. Stopping entire server...")
+        requests.post(f"http://localhost:{FLASK_PORT}/shutdown")
 
     def start(self) -> None:
         if self.is_running():
