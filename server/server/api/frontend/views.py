@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template
+from server.db.dataops.map import get_all_maps
 
 frontend_blueprint = Blueprint('frontend_blueprint', __name__)
 
@@ -7,7 +8,7 @@ frontend_blueprint = Blueprint('frontend_blueprint', __name__)
 def simulations():
     template_file_path = "menu.html"
 
-    simulations = [{"id": 1, "aerial_view" : ""}]
+    simulations = get_all_maps()
 
     return render_template(template_file_path, simulations=simulations)
 
