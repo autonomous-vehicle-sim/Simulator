@@ -19,9 +19,11 @@ public class TCPClient : MonoBehaviour
     private int queuedMaps = 0;
     private int queuedCars = 0;
     private ConcurrentQueue<Action> actionQueue = new ConcurrentQueue<Action>();
+    private ScreenshotScript screenshot;
 
     void Start()
     {
+        screenshot = new ScreenshotScript();
         pathTimestamp = DateTime.Now.ToString();
         pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
         connection = GetComponent<Connection>();
@@ -64,6 +66,7 @@ public class TCPClient : MonoBehaviour
         dynamicFloor.Generate();
         maps.Add(map);
         map.transform.position = new Vector3(mapId * 1000, 0, 0);
+        StartCoroutine(screenshot.TakeScreenshot(map.GetComponentInChildren<Camera>()));
     }
 
     public static explicit operator TCPClient(GameObject v)
@@ -95,6 +98,7 @@ public class TCPClient : MonoBehaviour
                     seed = Int32.Parse(arguments[1]);
                 InitNewMap(seed);
                 cars.Add(new List<GameObject>());
+
                 SendMessageToServer("map " + maps.Count.ToString() + " initialized");
             });
             return;
@@ -215,8 +219,8 @@ public class TCPClient : MonoBehaviour
             {
                 actionQueue.Enqueue(() =>
                 {
-                    float engine = cars[mapId][instanceId].GetComponent<CarInputController>().GetAccelInput() * 100.0f;
-                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + engine.ToString() + " " + DateTime.Now.ToString();
+                    float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
                     if (cars[mapId][instanceId].activeSelf == false)
                         message = arguments[0] + " " + arguments[1] + " " + "deleted";
                     SendMessageToServer(message);
