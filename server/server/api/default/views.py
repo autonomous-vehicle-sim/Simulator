@@ -50,7 +50,7 @@ class InitInstance(Resource):
             if response.startswith('Invalid'):
                 return {'message': response}, 400
             _, _, resp_instance_id, msg = response.split(' ')
-            vehicle = create_vehicle_by_map_id(map_id)
+            vehicle = create_vehicle_by_map_id(response[1].split(" ")[1])
             return {'message': f"map_id: {map_id}, vehicle_id: {vehicle.vehicle_id}"}, 201
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
@@ -72,7 +72,8 @@ class InitMap(Resource):
                 seed = -1
             response = websocket.send_and_get_message(create_init_map_message(seed), 2)
             if "finished initialization" in response[1]:
-                map_obj = create_map(seed)
+                map_id = response[1].split(" ")[1]
+                map_obj = create_map(int(map_id), seed)
                 return {'message': f'Map {map_obj.id} initialized successfully'}, 201
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400

@@ -35,6 +35,23 @@
             window.location.reload();
         }
 
+        function createNewVehicle(mapId) {
+            const url = "/api/init/instance";
+            const maxSteer = parseInt(document.getElementById("max-steer").value);
+            const maxEngine = parseInt(document.getElementById("max-engine").value);
+            const posX = parseInt(document.getElementById("pos-x").value);
+            const posY = parseInt(document.getElementById("pos-y").value);
+            const data = {
+                "map_id": mapId,
+                "max_steer": maxSteer,
+                "max_engine": maxEngine,
+                "pos_x": posX,
+                "pos_y": posY
+            }
+
+            sendRequestWithBody(url, data);
+        }
+
         function sendRequestWithBody(url, data) {
             fetch(url, {
                 method: "PUT",
@@ -42,10 +59,6 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .catch(error => {
-                alert('Error: ' + error);
             });
         }
 
@@ -55,10 +68,6 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-            })
-            .then(response => response.json())
-            .catch(error => {
-                alert('Error: ' + error);
             });
         }
 
@@ -69,10 +78,23 @@
 
     {% for simulator in simulations %}
         <div class="simulation">
-            <a href="http://localhost:5000/simulations/{{ simulator.id }}">
+        <!-- TODO: change a element last parameter from 0 to dynamic-->
+            <a href="http://localhost:5000/simulations/{{ simulator.id }}/0">
                 <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
             </a>
             <button onclick="removeMap({{ simulator.id }})">Remove instance</button>
+            <div class="new-vehicle">
+                <p>New vehicle parameters:</p>
+                <label>Max Steering</label>
+                <input type="text" id="max-steer">
+                <label>Max engine power</label>
+                <input type="text" id="max-engine">
+                <label>Starting position X</label>
+                <input type="text" id="pos-x">
+                <label>Starting position Y</label>
+                <input type="text" id="pos-y">
+                <button onclick="createNewVehicle({{ simulator.id }})">Create vehicle</button>
+            </div>
         </div>
     {% endfor %}
 
@@ -80,5 +102,6 @@
         <input type="text" id="seed">
         <button class="menu" onclick="generateMap()">Create new simulation</button>
     </div>
+
 </body>
 </html>
