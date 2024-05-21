@@ -12,18 +12,21 @@ public class TCPClient : MonoBehaviour
     Connection connection;
     private string pathTimestamp;
     [SerializeField] public bool connectToServer;
-    [SerializeField] GameObject carPrefab;
-    [SerializeField] GameObject mapPrefab;
-    [SerializeField] List<List<GameObject>> cars = new List<List<GameObject>>();
-    [SerializeField] List<GameObject> maps = new List<GameObject>();
+    [SerializeField] private GameObject carPrefab;
+    [SerializeField] private GameObject mapPrefab;
+    [SerializeField] private GameObject etiPrefab;
+    [SerializeField] private List<List<GameObject>> cars = new List<List<GameObject>>();
+    [SerializeField] private List<GameObject> maps = new List<GameObject>();
     private List<bool> reportedStateOfMaps = new List<bool>();
     private int queuedMaps = 0;
     private int queuedCars = 0;
     private const int DISTANCE_BETWEEN_MAPS = 5000;
     private ConcurrentQueue<Action> actionQueue = new ConcurrentQueue<Action>();
+    private ScreenshotScript screenshot;
 
     void Start()
     {
+        screenshot = gameObject.AddComponent<ScreenshotScript>();
         pathTimestamp = DateTime.Now.ToString();
         pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
         connection = GetComponent<Connection>();
@@ -33,9 +36,10 @@ public class TCPClient : MonoBehaviour
     {
         for(int i = 0; i < reportedStateOfMaps.Count; i++)
         {
-            if (!reportedStateOfMaps[i] && maps[i].GetComponentInChildren<DynamicFloor>().isMapReady)
+            if (!reportedStateOfMaps[i] && (maps[i].GetComponentInChildren<DynamicFloor>() == null || maps[i].GetComponentInChildren<DynamicFloor>().isMapReady))
             {
                 reportedStateOfMaps[i] = true;
+                screenshot.TakeScreenshot(maps[i].GetComponentInChildren<Camera>());
                 SendMessageToServer("map " + i.ToString() + " finished initialization");
             }
         }
@@ -46,16 +50,17 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle, int posX = 0, int posY = 0)
+    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle, int posX = 0, int posZ = 0)
     {
         GameObject car = Instantiate(carPrefab);
         posX = Mathf.Clamp(posX, -500, 500);
-        posY = Mathf.Clamp(posY, -500, 500);
+        posZ = Mathf.Clamp(posZ, -500, 500);
         int instanceId = cars[mapId].Count;
         car.GetComponent<CarController>().SetTopSpeed(topSpeed);
         car.GetComponent<CarController>().SetMaxSteeringAngle(maxSteeringAngle);
         int offsetX = mapId * DISTANCE_BETWEEN_MAPS + posX;
-        int offsetY = 0 + posY;
+        int offsetZ = posZ;
+        int offsetY = 10;
         car.GetComponent<CarController>().SetMapInfo(mapId, instanceId, mapId * DISTANCE_BETWEEN_MAPS, 0);
         var children = car.GetComponentsInChildren<Transform>(includeInactive: true);
         foreach (Transform child in children)
@@ -63,8 +68,15 @@ public class TCPClient : MonoBehaviour
             child.gameObject.layer = LayerMask.NameToLayer("Cars");
         }
         cars[mapId].Add(car);
-        car.transform.position = new Vector3(mapId * DISTANCE_BETWEEN_MAPS + posX, 10, 0 + posY);
-        car.GetComponent<Rigidbody>().position = new Vector3(offsetX, 10, offsetY);
+        if(maps[mapId].GetComponentInChildren<DynamicFloor>() == null)
+        {
+            offsetX = mapId * DISTANCE_BETWEEN_MAPS - 111;
+            offsetY = 80;
+            offsetZ = 40;
+            
+        }
+        car.transform.position = new Vector3(offsetX, offsetY, offsetZ);
+        car.GetComponent<Rigidbody>().position = new Vector3(offsetX, offsetY, offsetZ);
     }
 
     private void InitNewMap(int seed = -1)
@@ -72,10 +84,18 @@ public class TCPClient : MonoBehaviour
         if (seed == -1)
             seed = UnityEngine.Random.Range(0, 1000 * 1000);
         int mapId = maps.Count;
-        GameObject map = Instantiate(mapPrefab);
-        DynamicFloor dynamicFloor = map.GetComponentInChildren<DynamicFloor>();
-        dynamicFloor.SetSeed(seed);
-        dynamicFloor.Generate();
+        GameObject map;
+        if (seed == -2)
+        {
+            map = Instantiate(etiPrefab);
+        }
+        else
+        {
+            map = Instantiate(mapPrefab);
+            DynamicFloor dynamicFloor = map.GetComponentInChildren<DynamicFloor>();
+            dynamicFloor.SetSeed(seed); 
+            dynamicFloor.Generate();
+        }
         maps.Add(map);
         reportedStateOfMaps.Add(false);
         map.transform.position = new Vector3(mapId * DISTANCE_BETWEEN_MAPS, 0, 0);
@@ -155,7 +175,7 @@ public class TCPClient : MonoBehaviour
             });
             return;
         }
-        //add checks to validate
+        //todo: add checks to validate
         int instanceId = Int32.Parse(arguments[1]);
         Debug.Assert(instanceId >= 0);
         if (instanceId >= queuedCars)
