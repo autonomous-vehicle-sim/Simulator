@@ -14,6 +14,9 @@ class Vehicle(db.Model):
     map_id = db.Column(db.Integer, db.ForeignKey('map.id', ondelete='CASCADE'), primary_key=True)
     vehicle_id = db.Column(db.Integer, primary_key=True)
     map = db.relationship('Map', backref=db.backref('vehicles', cascade='all, delete-orphan'))
+    engine = db.Column(db.Float, nullable=False)
+    steer = db.Column(db.Float, nullable=False)
+    last_update = db.Column(db.Numeric, nullable=False)
 
 
 class Frame(db.Model):
@@ -24,4 +27,6 @@ class Frame(db.Model):
     path_camera1 = db.Column(db.String(255), nullable=False)
     path_camera2 = db.Column(db.String(255), nullable=False)
     path_camera3 = db.Column(db.String(255), nullable=False)
-    vehicle = db.relationship('Vehicle', backref=db.backref('frames', cascade='all, delete-orphan'))
+    timestamp = db.Column(db.Numeric, nullable=False)
+    vehicle = db.relationship('Vehicle', backref=db.backref('frames', cascade='all, delete-orphan'),
+                              foreign_keys=[map_id, vehicle_id])

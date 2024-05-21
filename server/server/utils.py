@@ -7,6 +7,7 @@ def config_db(app, db_name):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
     db.init_app(app)
     with app.app_context():
+        db.drop_all()
         db.create_all()
 
 
