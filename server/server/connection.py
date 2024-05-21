@@ -88,7 +88,7 @@ class WSConnection:
                         continue
                 elif message.startswith("engine") or message.startswith("steer"):
                     try:
-                        update_vehicle_from_msg(message)
+                        requests.post(f"http://localhost:{FLASK_PORT}/api/update", data=message.encode())
                         print(f"Vehicle updated")
                     except Exception as e:
                         print(f"Error updating vehicle, skipping: {e}")
