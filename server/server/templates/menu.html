@@ -18,19 +18,67 @@
             display: block;
         }
     </style>
+    <script>
+        function removeMap(id) {
+            const url = "/api/delete/" + id;
+
+            sendRequest(url);
+            window.location.reload();
+        }
+
+        function generateMap() {
+            const seed = parseInt(document.getElementById("seed").value);
+            const url = "/api/init/map";
+            const body = {"seed" : seed};
+
+            sendRequestWithBody(url, body);
+            window.location.reload();
+        }
+
+        function sendRequestWithBody(url, data) {
+            fetch(url, {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .catch(error => {
+                alert('Error: ' + error);
+            });
+        }
+
+        function sendRequest(url) {
+            fetch(url, {
+                method: "DELETE",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => response.json())
+            .catch(error => {
+                alert('Error: ' + error);
+            });
+        }
+
+    </script>
 </head>
 <body>
     <h2>Currently running simulations:</h2>
 
     {% for simulator in simulations %}
         <div class="simulation">
-            <a onclick="console.log('Clicked')">
+            <a href="http://localhost:5000/simulations/{{ simulator.id }}">
                 <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
             </a>
-            <button onclick="console.log('Removing ' + str(simulator))">Remove instance</button>
+            <button onclick="removeMap({{ simulator.id }})">Remove instance</button>
         </div>
     {% endfor %}
 
-    <button class="menu" onclick="console.log('Start new sim')">Create new simulation</button>
+    <div>
+        <input type="text" id="seed">
+        <button class="menu" onclick="generateMap()">Create new simulation</button>
+    </div>
 </body>
 </html>

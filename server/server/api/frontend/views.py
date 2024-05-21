@@ -7,9 +7,9 @@ frontend_blueprint = Blueprint('frontend_blueprint', __name__)
 def simulations():
     template_file_path = "menu.html"
 
+    simulations = [{"id": 1, "aerial_view" : ""}]
 
-
-    return render_template(template_file_path)
+    return render_template(template_file_path, simulations=simulations)
 
 
 @frontend_blueprint.route('/simulations/<simulation_id>')
