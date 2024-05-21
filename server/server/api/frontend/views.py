@@ -21,6 +21,7 @@ def instance(simulation_id: str, vehicle_id: str):
 
     title = "Simulation " + simulation_id
     vehicle = get_vehicle(int(simulation_id), int(vehicle_id))
-    camera_views = get_latest_frame_from_vehicle(vehicle)
+    #camera_views = get_latest_frame_from_vehicle(vehicle)
+    camera_views = []
 
-    return render_template(template_file_path, title=title, camera_views=camera_views, mapId=simulation_id)
+    return render_template(template_file_path, title=title, camera_views=camera_views, mapId=simulation_id, vehicleId=vehicle_id)

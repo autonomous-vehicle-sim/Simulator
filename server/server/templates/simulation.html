@@ -41,11 +41,11 @@
     </style>
     <script>
         const mapId = {{ mapId }};
+        const vehicleId = {{ vehicleId }}
 
         function turn() {
             const turnAngle = document.getElementById("turn-angle").value;
             const data = {"steering": parseInt(turnAngle)};
-            const vehicleId = document.getElementById("vehicle-id").value;
             const url = "/api/control/" + mapId + "/" + vehicleId + "/steering";
 
             addLog("Turning by " + turnAngle + " degrees");
@@ -55,7 +55,6 @@
         function drive() {
             const driveSpeed = document.getElementById("movement-speed").value;
             const data = {"engine": parseInt(driveSpeed)};
-            const vehicleId = document.getElementById("vehicle-id").value;
             const url = "/api/control/" + mapId + "/" + vehicleId + "/engine";
 
             addLog("Speed: " + driveSpeed);
@@ -96,7 +95,6 @@
             </div>
 
             <div class="controls">
-                <input type="text", id="vehicle-id" required>
                 <div class="turn">
                     <button onclick="turn()">Turn by angle</button>
                     <input type="text" id="turn-angle" value="0">
