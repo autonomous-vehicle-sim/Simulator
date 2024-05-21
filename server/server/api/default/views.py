@@ -10,7 +10,8 @@ from server.api.default.models import ControlEngineCommand, ControlSteeringComma
     ControlPositionCommand
 from server.db.dataops.frame import get_nth_frame_by_ids
 from server.db.dataops.map import get_map, create_map, delete_map_by_id
-from server.db.dataops.vehicle import create_vehicle_by_map_id, get_vehicle, delete_vehicle_by_id
+from server.db.dataops.vehicle import create_vehicle_by_map_id, get_vehicle, delete_vehicle_by_id, \
+    update_vehicle_from_msg
 from server.utils import create_set_message, MessageSetType, create_init_map_message, create_init_instance_message, \
     create_delete_message
 
@@ -28,6 +29,13 @@ class IsAlive(Resource):
 class Version(Resource):
     def get(self):
         return jsonify({"result": 'Flask is alive!'})
+
+
+@ns.route('/update')
+class Update(Resource):
+    def post(self):
+        message = request.data.decode()
+        update_vehicle_from_msg(message)
 
 
 @ns.route('/init/instance')
@@ -49,8 +57,8 @@ class InitInstance(Resource):
                                                                                    pos_x, pos_y))
             if response.startswith('Invalid'):
                 return {'message': response}, 400
-            _, _, resp_instance_id, msg = response.split(' ')
-            vehicle = create_vehicle_by_map_id(response[1].split(" ")[1])
+            _, resp_map_id, resp_instance_id, msg = response.split(' ')
+            vehicle = create_vehicle_by_map_id(resp_map_id)
             return {'message': f"map_id: {map_id}, vehicle_id: {vehicle.vehicle_id}"}, 201
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
@@ -72,8 +80,8 @@ class InitMap(Resource):
                 seed = -1
             response = websocket.send_and_get_message(create_init_map_message(seed), 2)
             if "finished initialization" in response[1]:
-                map_id = response[1].split(" ")[1]
-                map_obj = create_map(int(map_id), seed)
+                map_id = int(response[1].split(' ')[1])
+                map_obj = create_map(map_id, seed)
                 return {'message': f'Map {map_obj.id} initialized successfully'}, 201
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400

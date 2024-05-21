@@ -11,8 +11,8 @@ class Map(db.Model):
 
 class Vehicle(db.Model):
     __tablename__ = 'vehicle'
-    map_id = db.Column(db.Integer, db.ForeignKey('map.id', ondelete='CASCADE'), primary_key=True)
-    vehicle_id = db.Column(db.Integer, primary_key=True)
+    map_id = db.Column(db.Integer, db.ForeignKey('map.id', ondelete='CASCADE'), primary_key=True, autoincrement=False)
+    vehicle_id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     map = db.relationship('Map', backref=db.backref('vehicles', cascade='all, delete-orphan'),
                           foreign_keys=[map_id])
     engine = db.Column(db.Float, nullable=False)
