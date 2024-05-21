@@ -1516,60 +1516,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!1 &806480090
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 806480092}
-  - component: {fileID: 806480093}
-  m_Layer: 0
-  m_Name: Dummy Server
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &806480092
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 806480090}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -17.85279, y: 2.695404, z: 7.8683014}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &806480093
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 806480090}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cc369afe3638f64fa7089d31072c75a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  customMessage:
-  - init_new_map
-  - 0 init_new 100 100
-  - 0 0 set engine 30
-  - 0 0 set steer 30
-  - 0 0 get camera 0
-  - 0 0 delete
-  - 0 0 get steer
-  - 0 0 get engine
-  sendCustomMessage: 
 --- !u!1 &899212995
 GameObject:
   m_ObjectHideFlags: 0
@@ -2556,6 +2502,8 @@ MonoBehaviour:
   carPrefab: {fileID: 2829787226532518041, guid: 08cad5e77897d9d4bbe2251a47ffcaf1,
     type: 3}
   mapPrefab: {fileID: 690310103244710763, guid: 4b2985ae7efbd2c47ab518c81bfc33ba,
+    type: 3}
+  etiPrefab: {fileID: 7477548734149744116, guid: 8554a707e7007ac47a459220829ee059,
     type: 3}
   maps: []
 --- !u!114 &1280510521
@@ -4667,5 +4615,4 @@ SceneRoots:
   - {fileID: 2139823699}
   - {fileID: 1065286094}
   - {fileID: 1383774778}
-  - {fileID: 806480092}
   - {fileID: 1280510519}

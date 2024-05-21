@@ -44,8 +44,17 @@ def update_vehicle(vehicle: Vehicle, engine: float, steer: float, time: float) -
 
 
 def update_vehicle_from_msg(message: str) -> None:
-    _, map_id, vehicle_id, engine, steer, time = message.split(' ')
+    msg_type, map_id, vehicle_id, value, time = message.split(' ')
     vehicle = get_vehicle(int(map_id), int(vehicle_id))
+    if msg_type == 'engine':
+        engine = value
+        steer = vehicle.steer
+    elif msg_type == 'steer':
+        engine = vehicle.engine
+        steer = value
+    else:
+        print('Invalid message type. Skipping update.')
+        return
     update_vehicle(vehicle, float(engine), float(steer), float(time))
 
 
