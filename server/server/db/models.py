@@ -28,5 +28,7 @@ class Frame(db.Model):
     path_camera2 = db.Column(db.String(255), nullable=False)
     path_camera3 = db.Column(db.String(255), nullable=False)
     timestamp = db.Column(db.Numeric, nullable=False)
-    vehicle = db.relationship('Vehicle', backref=db.backref('frames', cascade='all, delete-orphan'),
+    vehicle = db.relationship('Vehicle',
+                              backref=db.backref('frames', cascade='all, delete-orphan'),
+                              primaryjoin="and_(Frame.map_id == Vehicle.map_id, Frame.vehicle_id == Vehicle.vehicle_id)",
                               foreign_keys=[map_id, vehicle_id])
