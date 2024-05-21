@@ -8,6 +8,7 @@ from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
 from server.db.dataops.frame import get_nth_frame
+from server.db.dataops.map import create_map
 from server.utils import create_set_message, MessageSetType, MessageGetType, create_get_message, \
     create_init_map_message, create_init_instance_message, create_delete_message
 
@@ -60,6 +61,7 @@ class InitMap(Resource):
             if seed is None:
                 seed = -1
             asyncio.run(websocket.send_message(create_init_map_message(seed)))
+            create_map(seed)
             return {'message': 'Map init command sent successfully'}, 202
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
