@@ -19,7 +19,11 @@ def get_map(map_id: int) -> Map:
     return Map.query.filter_by(id=map_id).one_or_404()
 
 
-def delete_map(map_obj: Map):
+def get_all_maps() -> list[Map]:
+    return Map.query.all()
+
+
+def delete_map(map_obj: Map) -> None:
     db.session.delete(map_obj)
     try:
         db.session.commit()
@@ -29,6 +33,6 @@ def delete_map(map_obj: Map):
         raise
 
 
-def delete_map(map_id: int):
+def delete_map_by_id(map_id: int) -> None:
     map_obj = get_map(map_id)
     delete_map(map_obj)

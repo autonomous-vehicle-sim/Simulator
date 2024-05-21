@@ -17,10 +17,10 @@ public class CameraRecorder : MonoBehaviour
     private String _pathTimestamp;
     private CarController _carController;
     private String _dataPath;
-    private String _photoPath;
     private TCPClient _client;
     private const int CAMERA_LAYER = 1;
     public static CameraRecorder Instance;
+    private float _currentFrameTimestamp;
 
 
     // Start is called before the first frame update
@@ -32,21 +32,20 @@ public class CameraRecorder : MonoBehaviour
         _pathTimestamp = Regex.Replace(_pathTimestamp, ":", ".");
         _carController = gameObject.GetComponent<CarController>();
         _dataPath = _capturePath + "/" + _pathTimestamp + ".csv";
-        _photoPath = _capturePath;
         foreach (Camera _camera in _cameras)
         {
             _camera.cullingMask = CAMERA_LAYER;
         }
         SetPath();
         List<String> carParams = new List<String> { "SteeringAngle", "MotorTorque" };
-
         WritetoCsv(_dataPath, string.Join(";",carParams));
+        SetClient();
 
     }
     public void SetPath()
     {
-        string mapId = _carController.GetMapId().ToString();
-        string carId = _carController.GetCarId().ToString();
+        string mapId = _carController.mapId.ToString();
+        string carId = _carController.carId.ToString();
         _capturePath = _capturePath + _pathTimestamp + '/' + mapId + "/" + carId + '/';
         _dataPath = _capturePath + "carData.csv";
         System.IO.FileInfo directoryPath = new System.IO.FileInfo(_capturePath);
@@ -56,7 +55,7 @@ public class CameraRecorder : MonoBehaviour
 
     public void SetClient()
     {
-        _client = (TCPClient)GameObject.Find("Client");
+        _client = GameObject.Find("Client").GetComponent<TCPClient>();
     }
 
     private void WritetoCsv(String path, String data)
@@ -110,21 +109,32 @@ public class CameraRecorder : MonoBehaviour
     private void Update()
     {
         _timeSinceLastCapture += Time.deltaTime;
+        _currentFrameTimestamp = Time.time;
         if (_timeSinceLastCapture > 1 / _framesPerSecond)
         {
-            string newPhotosUpdateInfo = _carController.GetMapId().ToString() + " " + _carController.GetCarId().ToString() + " "
-                             + _framesCaptured.ToString() + " " + Time.time.ToString() + " ";
+            string newPhotosUpdateInfo = _carController.mapId.ToString() + " " + _carController.carId.ToString() + " "
+                                       + _framesCaptured.ToString() + " " + _currentFrameTimestamp.ToString() + " ";
             _timeSinceLastCapture = 0;
             for(int i = 0; i < _cameras.Length; i++)
             {
                 String filepath = _capturePath + _cameras[i].name + "/" + _framesCaptured.ToString() + ".png";
-                newPhotosUpdateInfo += filepath + " ";
+                newPhotosUpdateInfo += "\"" + filepath + "\" ";
                 SaveScreenshot(filepath, _cameras[i]);
             }
             _framesCaptured++;
             SaveCarData(_dataPath);
             if(_client != null)
+            {
+                float steer = _carController.CurrentSpeed * 100.0f;
+                float engine = _carController.CurrentSteeringAngle * 100.0f;
+                float carId = _carController.carId;
+                float mapId = _carController.mapId;
+                string newSteerUpdateInfo = "steer " + mapId + " " + carId + " " + steer.ToString() + " " + _currentFrameTimestamp.ToString();
+                string newEngineUpdateInfo = "engine " + mapId + " " + carId + " " + engine.ToString() + " " + _currentFrameTimestamp.ToString();
                 _client.SendMessageToServer(newPhotosUpdateInfo);
+                _client.SendMessageToServer(newSteerUpdateInfo);
+                _client.SendMessageToServer(newEngineUpdateInfo);
+            }
          }
     }
 }
