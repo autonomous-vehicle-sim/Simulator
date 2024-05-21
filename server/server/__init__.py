@@ -26,6 +26,10 @@ def create_app(test_config=None):
 
     config_db(app, DB_NAME)
 
+    @app.route('/shutdown', methods=['POST'])
+    def shutdown():
+        os._exit(0)
+
     api.init_app(app, add_specs=False)
     app.register_blueprint(blueprint)
 
