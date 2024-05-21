@@ -7,17 +7,17 @@ public class TorqueBar : MonoBehaviour
 {
     [SerializeField] private float _maxTorque;
 
-    private Image _BarImage;
+    private Image _barImage;
     private float _maxBarFillAmount = 0.75f;
 
     public void SetTorque(float torque)
     {
         float barFillAmount = (torque / _maxTorque) * _maxBarFillAmount;
-        _BarImage.fillAmount = barFillAmount;
+        _barImage.fillAmount = barFillAmount;
     }
 
     private void Start()
     {
-        _BarImage = GetComponent<Image>();
+        _barImage = GetComponent<Image>();
     }
 }
