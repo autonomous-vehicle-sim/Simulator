@@ -48,7 +48,7 @@ public class Connection : MonoBehaviour
 #endif
     }
 
-    async void SendWebSocketMessage(String message)
+    public async void SendWebSocketMessage(String message)
     {
         if (websocket.State == WebSocketState.Open)
         {

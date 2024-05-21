@@ -10,26 +10,20 @@ using System.Text.RegularExpressions;
 public class TCPClient : MonoBehaviour
 {
     Connection connection;
-/*    private string serverIP = "127.0.0.1"; // Set this to your server's IP address.
-    public int serverPort = 1984;             // Set this to your server's port.*/
     private string pathTimestamp;
     [SerializeField] public bool connectToServer;
     [SerializeField] GameObject carPrefab;
     [SerializeField] GameObject mapPrefab;
     [SerializeField] List<List<GameObject>> cars = new List<List<GameObject>>();
     [SerializeField] List<GameObject> maps = new List<GameObject>();
-    private const int CAMERA_LAYER = 1;
-/*    private TcpClient client;
-    private NetworkStream stream;
-    private Thread clientReceiveThread;*/
+    private int queuedMaps = 0;
+    private int queuedCars = 0;
     private ConcurrentQueue<Action> actionQueue = new ConcurrentQueue<Action>();
-    private CameraRecorder cameraRecorder;
 
     void Start()
     {
         pathTimestamp = DateTime.Now.ToString();
         pathTimestamp = Regex.Replace(pathTimestamp, ":", ".");
-        cameraRecorder = new CameraRecorder();
         connection = GetComponent<Connection>();
     }
 
@@ -42,48 +36,21 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-
-    private void ListenForData()
-    {
-/*        try
-        {
-            byte[] bytes = new byte[1024];
-            while (true)
-            {
-                if (stream.DataAvailable)
-                {
-                    int length;
-                    while ((length = stream.Read(bytes, 0, bytes.Length)) != 0)
-                    {
-                        var incomingData = new byte[length];
-                        Array.Copy(bytes, 0, incomingData, 0, length);
-                        // Convert byte array to string message.
-                        string serverMessage = Encoding.UTF8.GetString(incomingData);
-                        HandleServerMessage(serverMessage);
-                    }
-                }
-            }
-        }
-        catch (SocketException socketException)
-        {
-            Debug.Log("Socket exception: " + socketException);
-        }*/
-    }
-    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle)
+    private void InitNewCar(int mapId, float topSpeed, float maxSteeringAngle, int posX = 0, int posY = 0)
     {
         GameObject car = Instantiate(carPrefab);
         int instanceId = cars[mapId].Count;
         car.GetComponent<CarController>().SetTopSpeed(topSpeed);
         car.GetComponent<CarController>().SetMaxSteeringAngle(maxSteeringAngle);
-        car.GetComponent<CameraRecorder>().SetPath(pathTimestamp, mapId.ToString(), instanceId.ToString());
+        car.GetComponent<CarController>().SetMapInfo(mapId, instanceId);
         var children = car.GetComponentsInChildren<Transform>(includeInactive: true);
         foreach (Transform child in children)
         {
             child.gameObject.layer = LayerMask.NameToLayer("Cars");
         }
         cars[mapId].Add(car);
-        car.transform.position = new Vector3(mapId * 1000, 10, 0);
-        car.GetComponent<Rigidbody>().position = new Vector3(mapId * 1000, 10, 0);
+        car.transform.position = new Vector3(mapId * 1000 + posX, 10, 0 + posY);
+        car.GetComponent<Rigidbody>().position = new Vector3(mapId * 1000 + posX, 10, 0 + posY);
     }
 
     private void InitNewMap(int seed = -1)
@@ -97,24 +64,13 @@ public class TCPClient : MonoBehaviour
         dynamicFloor.Generate();
         maps.Add(map);
         map.transform.position = new Vector3(mapId * 1000, 0, 0);
-        Debug.Log(1000 * mapId);
     }
-    private void GetCamera(int mapId, int instanceId)
-    {
-        GameObject frameComponent = cars[mapId][instanceId].transform.GetChild(0).gameObject;
-        Camera[] cameras = frameComponent.GetComponentsInChildren<Camera>();
-        foreach (Camera cam in cameras)
-        {
-            cam.cullingMask = CAMERA_LAYER;
-        }
-        Debug.Log(cameraRecorder.ToString());
-        Debug.Log(cars[mapId][instanceId].ToString());
 
-        cameraRecorder.SetCar(cars[mapId][instanceId]);
-        cameraRecorder.SetCameras(cameras);
-        string path = "getCamera/" + mapId.ToString() + "/" + instanceId.ToString();
-        cameraRecorder.SavePhoto(path, "test");
+    public static explicit operator TCPClient(GameObject v)
+    {
+        throw new NotImplementedException();
     }
+
     public void HandleServerMessage(string message)
     {
         Debug.Log("Received " + message);  
@@ -131,6 +87,7 @@ public class TCPClient : MonoBehaviour
         }
         if (arguments[0] == "init_new_map")
         {
+            queuedMaps++;
             actionQueue.Enqueue(() =>
             {
                 int seed = -1;
@@ -138,11 +95,20 @@ public class TCPClient : MonoBehaviour
                     seed = Int32.Parse(arguments[1]);
                 InitNewMap(seed);
                 cars.Add(new List<GameObject>());
+                SendMessageToServer("map " + maps.Count.ToString() + " initialized");
             });
             return;
         }
 
         int mapId = Int32.Parse(arguments[0]);
+        if(mapId >= queuedMaps)
+        {
+            actionQueue.Enqueue(() =>
+            {
+                SendMessageToServer("Invalid map id provided");
+            });
+            return;
+        }
         Debug.Assert(mapId >= 0);
 
         if (arguments[1] == "delete")
@@ -153,6 +119,7 @@ public class TCPClient : MonoBehaviour
                     car.SetActive(false);
                 }
                 maps[mapId].SetActive(false);
+                SendMessageToServer("map " + mapId.ToString() + " deleted");
             });
             return;
         }
@@ -163,13 +130,30 @@ public class TCPClient : MonoBehaviour
                 int instanceId = cars[mapId].Count;
                 float topSpeed = float.Parse(arguments[2]);
                 float maxSteeringAngle = float.Parse(arguments[3]);
-                InitNewCar(mapId, topSpeed, maxSteeringAngle);
+                int posX = Int32.Parse(arguments[4]);
+                int posY = Int32.Parse(arguments[5]);
+                if (topSpeed > 0 && maxSteeringAngle > 0)
+                {
+                    queuedCars++;
+                    InitNewCar(mapId, topSpeed, maxSteeringAngle);
+                    SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " initialized");
+                }
+                else
+                    SendMessageToServer("Invalid init car values provided");
             });
             return;
         }
 
         int instanceId = Int32.Parse(arguments[1]);
         Debug.Assert(instanceId >= 0);
+        if (instanceId >= queuedCars)
+        {
+            actionQueue.Enqueue(() =>
+            {
+                SendMessageToServer("Invalid car id provided");
+            });
+            return;
+        }
         if (arguments[2] == "set")
         {
             if (arguments[3] == "steer")
@@ -187,6 +171,7 @@ public class TCPClient : MonoBehaviour
                         steer = -carController.GetMaxSteeringAngle();
                     }
                     cars[mapId][instanceId].GetComponent<CarInputController>().SetSteeringInput(steer);
+                    SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " steer set to " + steer.ToString());
                 });
             }
             else if (arguments[3] == "engine")
@@ -194,81 +179,64 @@ public class TCPClient : MonoBehaviour
                 actionQueue.Enqueue(() =>
                 {
                     float acceleration = float.Parse(arguments[4]) / 100.0f;
+                    Debug.Log(acceleration);
                     CarController carController = cars[mapId][instanceId].GetComponent<CarController>();
                     if (acceleration * 100.0f > carController.GetTopSpeed())
                     {
                         acceleration = carController.GetTopSpeed();
+                        Debug.Log("engine value too high. Cropped to " + acceleration.ToString());
                     }
                     if (acceleration * 100.0f < -carController.GetTopSpeed())
                     {
                         acceleration = -carController.GetTopSpeed();
+                        Debug.Log("engine value too low. Cropped to " + acceleration.ToString());
                     }
                     cars[mapId][instanceId].GetComponent<CarInputController>().SetAccelInput(acceleration);
+                    Debug.Log("car " + instanceId.ToString() + " set to engine " + acceleration.ToString());
+                    SendMessageToServer("car " + instanceId.ToString() + " engine set to " + acceleration.ToString());
                 });
             }
             return;
         }
         if (arguments[2] == "get")
         {
-            if (arguments[3] == "camera")
-            {
-                int camera_id = Int32.Parse(arguments[4]);
-                actionQueue.Enqueue(() =>
-                {
-                    GetCamera(mapId, instanceId);
-                }
-                );
-            }
-            else if (arguments[2] == "get")
-            {
-                if (arguments[3] == "steer")
-                {
-                    actionQueue.Enqueue(() =>
-                    {
-                        float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
-                        string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                        if (cars[mapId][instanceId].activeSelf == false)
-                            message = arguments[0] + " " + arguments[1] + " " + "deleted";
-                        SendMessageToServer(message);
-                    });
-                }
-                else if (arguments[3] == "engine")
-                {
-                    actionQueue.Enqueue(() =>
-                    {
-                        float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
-                        string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
-                        if (cars[mapId][instanceId].activeSelf == false)
-                            message = arguments[0] + " " + arguments[1] + " " + "deleted";
-                        SendMessageToServer(message);
-                    });
-                }
-                return;
-            }
-            else if (arguments[2] == "delete")
+            if (arguments[3] == "steer")
             {
                 actionQueue.Enqueue(() =>
                 {
-                    cars[mapId][instanceId].SetActive(false);
+                    float steer = cars[mapId][instanceId].GetComponent<CarInputController>().GetSteeringInput() * 100.0f;
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + steer.ToString() + " " + DateTime.Now.ToString();
+                    if (cars[mapId][instanceId].activeSelf == false)
+                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
+                    SendMessageToServer(message);
                 });
             }
-            else
-                Debug.LogError("Invalid message sent from server");
-
+            else if (arguments[3] == "engine")
+            {
+                actionQueue.Enqueue(() =>
+                {
+                    float engine = cars[mapId][instanceId].GetComponent<CarInputController>().GetAccelInput() * 100.0f;
+                    string message = arguments[0] + " " + arguments[1] + " " + arguments[3] + " " + engine.ToString() + " " + DateTime.Now.ToString();
+                    if (cars[mapId][instanceId].activeSelf == false)
+                        message = arguments[0] + " " + arguments[1] + " " + "deleted";
+                    SendMessageToServer(message);
+                });
+            }
+            return;
         }
+        else if (arguments[2] == "delete")
+        {
+            actionQueue.Enqueue(() =>
+            {
+                cars[mapId][instanceId].SetActive(false);
+                SendMessageToServer("car " + mapId.ToString() + " " + instanceId.ToString() + " deleted");
+            });
+        }
+        else
+            Debug.LogError("Invalid message sent from server");
     }
     public void SendMessageToServer(string message)
     {
-        connection.SendMessage(message);
-    }
-
-    void OnApplicationQuit()
-    {
-/*        if (stream != null)
-            stream.Close();
-        if (client != null)
-            client.Close();
-        if (clientReceiveThread != null)
-            clientReceiveThread.Abort();*/
+        connection.SendWebSocketMessage(message);
     }
 }

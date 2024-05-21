@@ -10,7 +10,6 @@ public class CameraRecorder : MonoBehaviour
     [SerializeField] private string _capturePath = "C:/UnitySimulator/";
     [SerializeField] private int _screenshotWidth = 256, _screenshotHeight = 256;
     [SerializeField] private float _framesPerSecond = 1.0f;
-    [SerializeField] private GameObject _car;
 
     private int _framesCaptured = 0;
     private float _timeSinceLastCapture = 0;
@@ -19,8 +18,10 @@ public class CameraRecorder : MonoBehaviour
     private CarController _carController;
     private String _dataPath;
     private String _photoPath;
+    private TCPClient _client;
     private const int CAMERA_LAYER = 1;
     public static CameraRecorder Instance;
+
 
     // Start is called before the first frame update
     private void Start()
@@ -29,36 +30,35 @@ public class CameraRecorder : MonoBehaviour
         _pathTimestamp = DateTime.Now.ToString();
         // Replace ':" with '." as windows directories can't contain ':' in their filepaths
         _pathTimestamp = Regex.Replace(_pathTimestamp, ":", ".");
-        _carController = _car.GetComponent<CarController>();
+        _carController = gameObject.GetComponent<CarController>();
         _dataPath = _capturePath + "/" + _pathTimestamp + ".csv";
         _photoPath = _capturePath;
         foreach (Camera _camera in _cameras)
         {
             _camera.cullingMask = CAMERA_LAYER;
         }
-
+        SetPath();
         List<String> carParams = new List<String> { "SteeringAngle", "MotorTorque" };
+
         WritetoCsv(_dataPath, string.Join(";",carParams));
+
     }
-    public void SetPath(string pathTimestamp, string map_id, string car_id)
+    public void SetPath()
     {
-        _capturePath = _capturePath + pathTimestamp + '/' + map_id + "/" + car_id + '/';
+        string mapId = _carController.GetMapId().ToString();
+        string carId = _carController.GetCarId().ToString();
+        _capturePath = _capturePath + _pathTimestamp + '/' + mapId + "/" + carId + '/';
         _dataPath = _capturePath + "carData.csv";
         System.IO.FileInfo directoryPath = new System.IO.FileInfo(_capturePath);
         directoryPath.Directory.Create();
     }
-    public void SetCar(GameObject car)
+    
+
+    public void SetClient()
     {
-        _car = car;
+        _client = (TCPClient)GameObject.Find("Client");
     }
-    public Camera[] GetCameras()
-    {
-        return _cameras;
-    }
-    public void SetCameras(Camera[] cameras)
-    {
-        _cameras = cameras;
-    }
+
     private void WritetoCsv(String path, String data)
     {
         using (StreamWriter writer = new StreamWriter(path, true))
@@ -105,31 +105,26 @@ public class CameraRecorder : MonoBehaviour
         RenderTexture.active = currentRT;
         return image;
     }
-    public void SavePhoto(String path, string photo_id)
-    {
-        for (int i = 0; i < _cameras.Length; i++)
-        {
-            _photoPath = _capturePath;
-
-            String filepath = _photoPath + path + "/" + _cameras[i].name + "/" + photo_id.ToString() + ".png";
-            Debug.Log(filepath);
-            SaveScreenshot(filepath, _cameras[i]);
-        }
-    }
+ 
     // Update is called once per frame
     private void Update()
     {
         _timeSinceLastCapture += Time.deltaTime;
-        if(_timeSinceLastCapture > 1 / _framesPerSecond)
+        if (_timeSinceLastCapture > 1 / _framesPerSecond)
         {
+            string newPhotosUpdateInfo = _carController.GetMapId().ToString() + " " + _carController.GetCarId().ToString() + " "
+                             + _framesCaptured.ToString() + " " + Time.time.ToString() + " ";
             _timeSinceLastCapture = 0;
             for(int i = 0; i < _cameras.Length; i++)
             {
                 String filepath = _capturePath + _cameras[i].name + "/" + _framesCaptured.ToString() + ".png";
+                newPhotosUpdateInfo += filepath + " ";
                 SaveScreenshot(filepath, _cameras[i]);
             }
             _framesCaptured++;
             SaveCarData(_dataPath);
+            if(_client != null)
+                _client.SendMessageToServer(newPhotosUpdateInfo);
          }
     }
 }

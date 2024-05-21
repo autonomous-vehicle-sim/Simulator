@@ -7,6 +7,7 @@ from server.api.common import api
 from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
+from server.db.dataops.frame import get_nth_frame
 from server.utils import create_set_message, MessageSetType, MessageGetType, create_get_message, \
     create_init_map_message, create_init_instance_message, create_delete_message
 
@@ -55,7 +56,9 @@ class InitMap(Resource):
     @ns.expect(InitMap)
     def put(self):
         try:
-            seed = request.get_json()['seed'] or -1
+            seed = request.get_json()['seed']
+            if seed is None:
+                seed = -1
             asyncio.run(websocket.send_message(create_init_map_message(seed)))
             return {'message': 'Map init command sent successfully'}, 202
         except (ValueError, KeyError) as e:
@@ -71,7 +74,7 @@ class GetSteering(Resource):
     @ns.response(500, 'Failed to fetch control data')
     def get(self, map_id, instance_id):
         try:
-            return websocket.send_and_get_message(create_get_message, map_id, instance_id, MessageGetType.STEER), 200
+            return websocket.send_and_get_message(create_get_message(map_id, instance_id, MessageGetType.STEER)), 200
         except ValueError as e:
             return {'message': str(e)}, 400
         except Exception as e:
@@ -152,12 +155,20 @@ class Image(Resource):
     @ns.response(400, 'Requirements not met to fetch image data')
     @ns.response(404, 'Image data not found')
     @ns.response(500, 'Failed to fetch image data')
+    @ns.produces(['image/jpeg'])
     def get(self, map_id, instance_id, camera_id, image_id):
         try:
-            response = websocket.send_and_get_message(create_get_message(map_id, instance_id, MessageGetType.CAMERA,
-                                                                         camera_id, image_id))
-            if response:
-                return send_file(response, mimetype='image/jpeg')
+            response = None
+            frame = get_nth_frame(map_id=map_id, vehicle_id=instance_id, n=image_id)
+            if frame:
+                if camera_id == 1:
+                    response = frame.path_camera1
+                elif camera_id == 2:
+                    response = frame.path_camera2
+                elif camera_id == 3:
+                    response = frame.path_camera3
+                if response:
+                    return send_file(response, mimetype='image/jpeg')
             return {'message': 'Image data not found'}, 404
         except ValueError as e:
             return {'message': str(e)}, 400

@@ -7,6 +7,7 @@ import websockets
 import websockets.exceptions
 
 from server.consts import WS_ADDRESS, WS_PORT
+from server.db.dataops.frame import create_frame
 
 IP_ADDRESS = WS_ADDRESS
 PORT = WS_PORT
@@ -67,21 +68,30 @@ class WSConnection:
         self.__websocket_server = websocket
         try:
             async for message in websocket:
+                if message.startswith("screen"):
+                    try:
+                        frame = create_frame(message)
+                        print(f"Frame created: {frame}")
+                    except Exception as e:
+                        print(f"Error creating frame, skipping: {e}")
+                        traceback.print_exc()
+                    finally:
+                        continue
                 self.__message_lock.acquire()
                 self.__message_queue.put(message)
                 self.__message_lock.release()
         except websockets.exceptions.ConnectionClosedError:
-            print("Simulator has disconnected")
+            print("Simulator has disconnected.")
             self.__websocket_server = None
         finally:
             self.stop()
 
     async def __start_server(self) -> None:
-        print("Starting server...")
+        print("Starting WS server...")
         async with websockets.serve(self.__handle_connection, IP_ADDRESS, PORT) as ws:
-            print(f"Server started at {ws.sockets[0].getsockname()[0]}:{ws.sockets[0].getsockname()[1]}")
+            print(f"WS server started at {ws.sockets[0].getsockname()[0]}:{ws.sockets[0].getsockname()[1]}")
             await self.__stop
-        print("Server stopped")
+        print("WS server stopped")
 
     def start(self) -> None:
         if self.is_running():
@@ -93,4 +103,5 @@ class WSConnection:
         loop.run_forever()
 
     def stop(self) -> None:
-        self.__stop.set_result(None)
+        print("Stopping WS server...")
+        self.__stop.set_result(True)
