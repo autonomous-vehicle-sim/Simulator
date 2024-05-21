@@ -5,7 +5,7 @@ db = SQLAlchemy()
 
 class Map(db.Model):
     __tablename__ = 'map'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     seed = db.Column(db.Integer, nullable=False)
 
 
@@ -21,7 +21,7 @@ class Vehicle(db.Model):
 
 class Frame(db.Model):
     __tablename__ = 'frame'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     map_id = db.Column(db.Integer, db.ForeignKey('vehicle.map_id', ondelete='CASCADE'))
     vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicle.vehicle_id', ondelete='CASCADE'))
     path_camera1 = db.Column(db.String(255), nullable=False)
