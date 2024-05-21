@@ -49,7 +49,7 @@
             const url = "/api/control/" + mapId + "/" + vehicleId + "/steering";
 
             addLog("Turning by " + turnAngle + " degrees");
-            sendRequest(url, data)
+            sendRequest(url, data, 'POST')
         }
 
         function drive() {
@@ -59,7 +59,24 @@
             const url = "/api/control/" + mapId + "/" + vehicleId + "/engine";
 
             addLog("Speed: " + driveSpeed);
-            sendRequest(url, data)
+            sendRequest(url, data, 'POST')
+        }
+
+        function createNewVehicle() {
+            const url = "/api/init/instance";
+            const maxSteer = parseInt(document.getElementById("max-steer").value);
+            const maxEngine = parseInt(document.getElementById("max-engine").value);
+            const posX = parseInt(document.getElementById("pos-x").value);
+            const posY = parseInt(document.getElementById("pos-y").value);
+            const data = {
+                "map_id": mapId,
+                "max_steer": maxSteer,
+                "max_engine": maxEngine,
+                "pos_x": posX,
+                "pos_y": posY
+            }
+
+            sendRequest(url, data, 'PUT');
         }
 
         function addLog(message) {
@@ -71,9 +88,9 @@
             logBoard.insertBefore(logElement, logBoard.firstChild);
         }
 
-        function sendRequest(url, data) {
+        function sendRequest(url, data, method) {
             fetch(url, {
-                method: 'POST',
+                method: method,
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -97,7 +114,14 @@
 
         <section>
             <div class="logs" id="logs">
+            </div>
 
+            <div class="new-vehicle">
+                <input type="text" id="max-steer">
+                <input type="text" id="max-engine">
+                <input type="text" id="pos-x">
+                <input type="text" id="pos-y">
+                <button onclick="createNewVehicle()">Create vehicle</button>
             </div>
 
             <div class="controls">
