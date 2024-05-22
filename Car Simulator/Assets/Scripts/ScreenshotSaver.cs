@@ -11,6 +11,7 @@ public class ScreenshotScript : MonoBehaviour
 {
     public string screenshotDirectory = "C:\\UnitySimulator";
     public string screenshotName = "mapScreenshot";
+    public string latestScreenshotPath;
     private const int MAP_LAYER = 1;
     private const int TEXTURE_WIDTH = 512;
     private const int TEXTURE_HEIGHT = 512;
@@ -48,6 +49,7 @@ public class ScreenshotScript : MonoBehaviour
             string filePath = Path.Combine(screenshotDirectory, screenshotName + "_" + timestamp + ".png");
             File.WriteAllBytes(filePath, bytes);
             Debug.Log("Screenshot taken and saved to: " + filePath);
+            latestScreenshotPath = filePath;
             camera.cullingMask = originalCullingMask;
             camera.targetTexture = null;
             RenderTexture.active = null;
