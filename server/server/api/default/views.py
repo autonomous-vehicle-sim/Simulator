@@ -8,7 +8,7 @@ from server.api.common import api
 from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
-from server.db.dataops.frame import get_nth_frame_by_ids, create_frame_from_msg
+from server.db.dataops.frame import get_nth_frame_by_ids, create_frame_from_msg, get_latest_frame_by_ids
 from server.db.dataops.map import get_map, create_map, delete_map_by_id
 from server.db.dataops.vehicle import create_vehicle_by_map_id, get_vehicle, delete_vehicle_by_id, \
     update_vehicle_from_msg
@@ -211,6 +211,32 @@ class Image(Resource):
         except Exception as e:
             return {'message': str(e)}, 500
 
+
+@ns.route('/image/<int:map_id>/<int:instance_id>/<int:camera_id>')
+class Image(Resource):
+    @ns.response(200, 'Image data fetched successfully')
+    @ns.response(400, 'Requirements not met to fetch image data')
+    @ns.response(404, 'Image data not found')
+    @ns.response(500, 'Failed to fetch image data')
+    @ns.produces(['image/jpeg'])
+    def get(self, map_id, instance_id, camera_id):
+        try:
+            response = None
+            frame = get_latest_frame_by_ids(map_id=map_id, vehicle_id=instance_id)
+            if frame:
+                if camera_id == 1:
+                    response = frame.path_camera1
+                elif camera_id == 2:
+                    response = frame.path_camera2
+                elif camera_id == 3:
+                    response = frame.path_camera3
+                if response:
+                    return send_file(response, mimetype='image/jpeg')
+            return {'message': 'Image data not found'}, 404
+        except ValueError as e:
+            return {'message': str(e)}, 400
+        except Exception as e:
+            return {'message': str(e)}, 500
 
 @ns.route('/delete/<int:map_id>/<int:instance_id>')
 class DeleteInstance(Resource):
