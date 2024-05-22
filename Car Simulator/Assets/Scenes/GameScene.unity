@@ -3048,7 +3048,6 @@ MonoBehaviour:
   _screenshotWidth: 256
   _screenshotHeight: 256
   _framesPerSecond: 1
-  _car: {fileID: 1399656764}
 --- !u!1 &479386022
 GameObject:
   m_ObjectHideFlags: 0
@@ -3281,6 +3280,26 @@ PrefabInstance:
       propertyPath: field of view
       value: 80
       objectReference: {fileID: 0}
+    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2829787226532518041, guid: f4f516068a4241b499e09e335959a739,
         type: 3}
       propertyPath: m_Name
@@ -3315,6 +3334,46 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 23.09
+      objectReference: {fileID: 0}
+    - target: {fileID: 3829347363763636521, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3829347363763636521, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3829347363763636521, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3829347363763636521, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5210541271170032085, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5210541271170032085, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5210541271170032085, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5210541271170032085, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7033704538522054162, guid: f4f516068a4241b499e09e335959a739,
         type: 3}
@@ -3364,6 +3423,26 @@ PrefabInstance:
     - target: {fileID: 7033704538522054162, guid: f4f516068a4241b499e09e335959a739,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8224228676045266366, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8224228676045266366, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8224228676045266366, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8224228676045266366, guid: f4f516068a4241b499e09e335959a739,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -5036,12 +5115,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!1 &1399656764 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2829787226532518041, guid: f4f516068a4241b499e09e335959a739,
-    type: 3}
-  m_PrefabInstance: {fileID: 539058320}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1403614928
 GameObject:
   m_ObjectHideFlags: 0

@@ -19,6 +19,6 @@ public class TorqueMeter : MonoBehaviour
     {
         _torqueBarObject = GetComponentInChildren<TorqueBar>();
         _torqueValueObject = GameObject.Find("TorqueValue").GetComponent<TMP_Text>();
-        CarController.SpeedChanged += UpdateTorque;
+        CarControllerPlayable.SpeedChanged += UpdateTorque;
     }
 }

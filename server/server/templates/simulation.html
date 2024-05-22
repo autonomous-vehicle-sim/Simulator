@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            margin: 1%;
+            font-family: sans-serif;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            height: 100vh
+        }
+
+        .camera_view {
+            display: inline-block;
+        }
+        .camera_view > img {
+            width: 200px;
+            height: 200px;
+        }
+
+        section {
+            display: inline-flex;
+        }
+
+        .logs {
+            padding: 1%;
+            border: 1px solid black;
+            width: 20em;
+            height: 20em;
+            overflow-y: auto;
+        }
+
+        .controls {
+            display: inline-block;
+            margin-left: 2em;
+        }
+    </style>
+    <script>
+        const mapId = {{ mapId }};
+        const vehicleId = {{ vehicleId }};
+
+        function fetchImage(camera_id) {
+            fetch('/api/image/' + mapId + "/" + vehicleId + "/" + camera_id)
+                .then(res => {return res.blob()})
+                .then(blob => {
+                    const imgUrl = URL.createObjectURL(blob);
+                    const img = document.getElementById("cam" + camera_id);
+                    img.src = imgUrl;
+                });
+        }
+
+        function turn() {
+            const turnAngle = document.getElementById("turn-angle").value;
+            const data = {"steering": parseInt(turnAngle)};
+            const url = "/api/control/" + mapId + "/" + vehicleId + "/steering";
+
+            addLog("Turning by " + turnAngle + " degrees");
+            sendRequest(url, data, 'POST')
+        }
+
+        function drive() {
+            const driveSpeed = document.getElementById("movement-speed").value;
+            const data = {"engine": parseInt(driveSpeed)};
+            const url = "/api/control/" + mapId + "/" + vehicleId + "/engine";
+
+            addLog("Speed: " + driveSpeed);
+            sendRequest(url, data, 'POST')
+            console.log(url);
+        }
+
+        function addLog(message) {
+            const logElement = document.createElement("p");
+            const logMessage = document.createTextNode(message);
+            logElement.appendChild(logMessage);
+
+            const logBoard = document.getElementById("logs");
+            logBoard.insertBefore(logElement, logBoard.firstChild);
+        }
+
+        function sendRequest(url, data, method) {
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+        }
+
+        function refresh() {
+            fetchImage(1);
+            fetchImage(2);
+            fetchImage(3);
+        }
+
+    </script>
+</head>
+<body>
+    <main>
+        <div class="camera_view" id="views">
+            <img src="" alt="C1 view" id="cam1">
+            <img src="" alt="C2 view" id="cam2">
+            <img src="" alt="C3 view" id="cam3">
+        </div>
+        <button onclick="refresh()">Refresh images</button>
+
+        <section>
+            <div class="logs" id="logs">
+            </div>
+
+            <div class="controls">
+                <div class="turn">
+                    <button onclick="turn()">Turn by angle</button>
+                    <input type="number" id="turn-angle" placeholder="[-100; 100]">
+                </div>
+                <div class="drive">
+                    <button onclick="drive()">Drive</button>
+                    <input type="number" id="movement-speed" placeholder="[-100; 100]">
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -15,6 +15,7 @@ public class CarController : MonoBehaviour
     public static event SpeedChangedEventHandler SpeedChanged;
     public delegate void SteeringChangedEventHandler(float steeringAngle);
     public static event SteeringChangedEventHandler SteeringChanged;
+    private CarInputController inputModifier;
 
     [SerializeField] private float _wheelRayLength = 1.0f;
     [SerializeField] private float _suspensionRestDist = 0.7f;
@@ -28,7 +29,43 @@ public class CarController : MonoBehaviour
     [SerializeField] private AnimationCurve _frictionCurve = new AnimationCurve();
     [SerializeField] private bool _drawDebugRays = false;
 
+    public int mapId { get; private set; }
+    public int carId { get; private set; }
+    private int _originX;
+    private int _originY;
+
     private Rigidbody _carRigidBody;
+
+    public void SetMaxSteeringAngle(float steeringAngle)
+    {
+        MaxSteeringAngle = steeringAngle;
+    }
+    public float GetMaxSteeringAngle()
+    {
+        return MaxSteeringAngle; 
+    }
+    public void SetTopSpeed(float topSpeed)
+    {
+        TopSpeed = topSpeed;
+    }
+    public float GetTopSpeed()
+    {
+        return TopSpeed;
+    }
+
+    public float GetCurrentEngine()
+    {
+        return inputModifier.GetAccelInput();
+    }
+
+    public void SetMapInfo(int mapId, int carId, int originX, int originY)
+    {
+        this.mapId = mapId;
+        this.carId = carId;
+        _originX = originX;
+        _originY = originY;
+    }
+
 
     // Evaluates how much torque should be applied given current car speed (fraction, from 0 to 1).
     // Returns a number from 0 to 1 - fraction of torque to apply.
@@ -47,15 +84,49 @@ public class CarController : MonoBehaviour
     private void Start()
     {
         _carRigidBody = GetComponent<Rigidbody>();
+        inputModifier = GetComponent<CarInputController>();
     }
+
 
     private void FixedUpdate()
     {
         if (_carRigidBody != null)
         {
-            float accelInput = Input.GetAxis("Vertical");
-            float steeringInput = Input.GetAxis("Horizontal");
+            float accelInput, steeringInput;
+            accelInput = inputModifier.GetAccelInput();
+            steeringInput = inputModifier.GetSteeringInput();
 
+            float currentX = _carRigidBody.position.x;
+            float currentY = _carRigidBody.position.y;
+            float currentZ = _carRigidBody.position.z;
+
+            if (currentX > _originX + 1000 )
+            {
+                _carRigidBody.position = new Vector3(currentX - 1750, currentY, currentZ);
+                gameObject.transform.position = new Vector3(currentX - 1750, currentY, currentZ);
+                currentX = _carRigidBody.position.x;
+            }
+
+            if (currentX < _originX - 1000)
+            {
+                _carRigidBody.position = new Vector3(currentX + 1750, currentY, currentZ);
+                gameObject.transform.position = new Vector3(currentX + 1750, currentY, currentZ);
+                currentX = _carRigidBody.position.x;
+            }
+
+            if (currentZ > _originY + 1000)
+            {
+                _carRigidBody.position = new Vector3(currentX, currentY, currentZ - 1750);
+                gameObject.transform.position = new Vector3(currentX, currentY, currentZ - 1750);
+            }
+
+            if (currentZ < _originY - 1000)
+            {
+                _carRigidBody.position = new Vector3(currentX, currentY, currentZ + 1750);
+                gameObject.transform.position = new Vector3(currentX, currentY, currentZ + 1750);
+            }
+
+            Debug.Assert(wheels.Count > 0);
             foreach (Wheel wheel in wheels)
             {
                 Transform wheelTransform = wheel.wheelObject.GetComponent<Transform>();
@@ -84,18 +155,20 @@ public class CarController : MonoBehaviour
                     float desiredSteeringDeltaVelocity = -steeringVelocity * _wheelGripFactor;
                     float desiredSteeringAcceleration = desiredSteeringDeltaVelocity / Time.fixedDeltaTime;
                     _carRigidBody.AddForceAtPosition(steeringDir * _wheelMass * desiredSteeringAcceleration, wheelTransform.position);
-
+                    //Debug.Log(accelInput);
                     Vector3 accelDir = wheelTransform.forward;
                     float currentTorque = 0.0f;
                     float carForwardSpeed = Vector3.Dot(transform.forward, _carRigidBody.velocity);
                     float speedFraction = Mathf.Clamp01(Mathf.Abs(carForwardSpeed) / TopSpeed);          // [0-1], (0 = no speed, 1 = full speed)
                     if (accelInput != 0.0f)
                     {
+                        //Debug.Log(accelInput);
                         // Acceleration/braking
                         if (wheel.motor)
                         {
                             float availableTorque = EvaluateTorqueCurve(speedFraction);
                             currentTorque = availableTorque * _torque * accelInput;
+                            
                             _carRigidBody.AddForceAtPosition(accelDir * currentTorque, wheelTransform.position);
                         }
                     }

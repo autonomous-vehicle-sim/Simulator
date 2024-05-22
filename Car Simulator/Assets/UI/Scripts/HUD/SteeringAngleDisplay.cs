@@ -16,6 +16,6 @@ public class SteeringAngleDisplay : MonoBehaviour
     private void Start()
     {
         _steeringAngleValueObject = GameObject.Find("SteeringAngleValue").GetComponent<TMP_Text>();
-        CarController.SteeringChanged += UpdateAngle;
+        CarControllerPlayable.SteeringChanged += UpdateAngle;
     }
 }
