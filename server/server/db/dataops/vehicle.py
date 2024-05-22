@@ -9,7 +9,7 @@ def create_vehicle(map_obj: Map) -> Vehicle:
     if latest_id is not None:
         vehicle_id = latest_id.vehicle_id + 1
     else:
-        vehicle_id = 1
+        vehicle_id = 0
     vehicle = Vehicle(map=map_obj, vehicle_id=vehicle_id, engine=0, steer=0, last_update=0)
     db.session.add(vehicle)
     try:
@@ -44,9 +44,18 @@ def update_vehicle(vehicle: Vehicle, engine: float, steer: float, time: float) -
 
 
 def update_vehicle_from_msg(message: str) -> None:
-    _, map_id, vehicle_id, engine, steer, time = message.split(' ')
+    msg_type, map_id, vehicle_id, value, time = message.split(' ')
     vehicle = get_vehicle(int(map_id), int(vehicle_id))
-    update_vehicle(vehicle, float(engine), float(steer), float(time))
+    if msg_type == 'engine':
+        engine = value.replace(',', '.')
+        steer = vehicle.steer
+    elif msg_type == 'steer':
+        engine = vehicle.engine
+        steer = value.replace(',', '.')
+    else:
+        print('Invalid message type. Skipping update.')
+        return
+    update_vehicle(vehicle, float(engine), float(steer), float(time.replace(',', '.')))
 
 
 def delete_vehicle(vehicle: Vehicle) -> None:

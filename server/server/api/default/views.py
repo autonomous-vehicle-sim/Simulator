@@ -2,14 +2,18 @@ import asyncio
 
 from flask import request, send_file
 from flask_restx import Resource, Namespace
+from werkzeug.exceptions import NotFound
 
 from server.api.common import api
 from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
 from server.db.dataops.frame import get_nth_frame_by_ids
-from server.utils import create_set_message, MessageSetType, MessageGetType, create_get_message, \
-    create_init_map_message, create_init_instance_message, create_delete_message
+from server.db.dataops.map import get_map, create_map, delete_map_by_id
+from server.db.dataops.vehicle import create_vehicle_by_map_id, get_vehicle, delete_vehicle_by_id, \
+    update_vehicle_from_msg
+from server.utils import create_set_message, MessageSetType, create_init_map_message, create_init_instance_message, \
+    create_delete_message
 
 ns = Namespace('default', description='Default namespace')
 api.add_namespace(ns, '/')
@@ -27,9 +31,16 @@ class Version(Resource):
         return '0.1'
 
 
+@ns.route('/update')
+class Update(Resource):
+    def post(self):
+        message = request.data.decode()
+        update_vehicle_from_msg(message)
+
+
 @ns.route('/init/instance')
 class InitInstance(Resource):
-    @ns.response(202, 'Instance initialized successfully')
+    @ns.response(201, 'Instance initialized successfully')
     @ns.response(503, 'Failed to initialize connection')
     @ns.expect(InitInstance)
     def put(self):
@@ -40,18 +51,26 @@ class InitInstance(Resource):
             max_engine = data['max_engine']
             pos_x = data['pos_x'] or 0
             pos_y = data['pos_y'] or 0
-            asyncio.run(websocket.send_message(create_init_instance_message(map_id, max_steer, max_engine,
-                                                                            pos_x, pos_y)))
-            return {'message': 'Init instance command sent successfully'}, 202
+            if get_map(map_id) is None:
+                return {'message': 'Invalid map id'}, 400
+            response = websocket.send_and_get_message(create_init_instance_message(map_id, max_steer, max_engine,
+                                                                                   pos_x, pos_y))
+            if response.startswith('Invalid'):
+                return {'message': response}, 400
+            _, resp_map_id, resp_instance_id, msg = response.split(' ')
+            vehicle = create_vehicle_by_map_id(resp_map_id)
+            return {'message': f"map_id: {map_id}, vehicle_id: {vehicle.vehicle_id}"}, 201
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
+        except NotFound:
+            return {'message': 'Map not found'}, 404
         except Exception as e:
             return {'message': str(e)}, 503
 
 
 @ns.route('/init/map')
 class InitMap(Resource):
-    @ns.response(202, 'Map initialized successfully')
+    @ns.response(201, 'Map initialized successfully')
     @ns.response(503, 'Failed to initialize map')
     @ns.expect(InitMap)
     def put(self):
@@ -59,8 +78,11 @@ class InitMap(Resource):
             seed = request.get_json()['seed']
             if seed is None:
                 seed = -1
-            asyncio.run(websocket.send_message(create_init_map_message(seed)))
-            return {'message': 'Map init command sent successfully'}, 202
+            response = websocket.send_and_get_message(create_init_map_message(seed), 2)
+            if "finished initialization" in response[1]:
+                map_id = int(response[1].split(' ')[1])
+                map_obj = create_map(map_id, seed)
+                return {'message': f'Map {map_obj.id} initialized successfully'}, 201
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
         except Exception as e:
@@ -71,10 +93,12 @@ class InitMap(Resource):
 class GetSteering(Resource):
     @ns.response(200, 'Control data fetched successfully')
     @ns.response(400, 'Requirements not met to fetch control data')
+    @ns.response(404, 'Vehicle not found')
     @ns.response(500, 'Failed to fetch control data')
     def get(self, map_id, instance_id):
         try:
-            return websocket.send_and_get_message(create_get_message(map_id, instance_id, MessageGetType.STEER)), 200
+            vehicle = get_vehicle(map_id, instance_id)
+            return vehicle.steer, 200
         except ValueError as e:
             return {'message': str(e)}, 400
         except Exception as e:
@@ -85,10 +109,12 @@ class GetSteering(Resource):
 class GetEngine(Resource):
     @ns.response(200, 'Control data fetched successfully')
     @ns.response(400, 'Requirements not met to fetch control data')
+    @ns.response(404, 'Vehicle not found')
     @ns.response(500, 'Failed to fetch control data')
     def get(self, map_id, instance_id):
         try:
-            return websocket.send_and_get_message(create_get_message(map_id, instance_id, MessageGetType.ENGINE)), 200
+            vehicle = get_vehicle(map_id, instance_id)
+            return vehicle.engine, 200
         except ValueError as e:
             return {'message': str(e)}, 400
         except Exception as e:
@@ -97,15 +123,18 @@ class GetEngine(Resource):
 
 @ns.route('/control/<int:map_id>/<int:instance_id>/engine')
 class ControlEngine(Resource):
-    @ns.response(202, 'Control command sent successfully')
+    @ns.response(200, 'Control command sent successfully')
     @ns.response(400, 'Invalid control command')
     @ns.response(500, 'Failed to send control command')
     @ns.expect(ControlEngineCommand)
     def post(self, map_id, instance_id):
         try:
             value = request.get_json()['engine']
-            asyncio.run(websocket.send_message(create_set_message(map_id, instance_id, MessageSetType.ENGINE, value)))
-            return {'message': 'Control command sent successfully'}, 202
+            response = websocket.send_and_get_message(create_set_message(map_id, instance_id,
+                                                                         MessageSetType.ENGINE, value))
+            if response.startswith('Invalid'):
+                return {'message': response}, 400
+            return {'message': response}, 200
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
         except Exception as e:
@@ -114,15 +143,18 @@ class ControlEngine(Resource):
 
 @ns.route('/control/<int:map_id>/<int:instance_id>/steering')
 class ControlSteering(Resource):
-    @ns.response(202, 'Control command sent successfully')
+    @ns.response(200, 'Control command sent successfully')
     @ns.response(400, 'Invalid control command')
     @ns.response(500, 'Failed to send control command')
     @ns.expect(ControlSteeringCommand)
     def post(self, map_id, instance_id):
         try:
             value = request.get_json()['steering']
-            asyncio.run(websocket.send_message(create_set_message(map_id, instance_id, MessageSetType.STEER, value)))
-            return {'message': 'Control command sent successfully'}, 202
+            response = websocket.send_and_get_message(create_set_message(map_id, instance_id,
+                                                                         MessageSetType.STEER, value))
+            if response.startswith('Invalid'):
+                return {'message': response}, 400
+            return {'message': response}, 200
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
         except Exception as e:
@@ -178,13 +210,16 @@ class Image(Resource):
 
 @ns.route('/delete/<int:map_id>/<int:instance_id>')
 class DeleteInstance(Resource):
-    @ns.response(202, 'Instance deleted successfully')
+    @ns.response(204, 'Instance deleted successfully')
     @ns.response(400, 'Requirements not met to delete instance')
     @ns.response(500, 'Failed to delete instance')
     def delete(self, map_id, instance_id):
         try:
-            asyncio.run(websocket.send_message(create_delete_message(map_id, instance_id)))
-            return {'message': 'Instance delete command sent successfully'}, 202
+            response = websocket.send_and_get_message(create_delete_message(map_id, instance_id))
+            if response.startswith('Invalid'):
+                return {'message': response}, 400
+            delete_vehicle_by_id(map_id, instance_id)
+            return {'message': 'Instance deleted successfully'}, 204
         except ValueError as e:
             return {'message': str(e)}, 400
         except Exception as e:
@@ -193,13 +228,16 @@ class DeleteInstance(Resource):
 
 @ns.route('/delete/<int:map_id>')
 class DeleteMap(Resource):
-    @ns.response(202, 'Map deleted successfully')
+    @ns.response(204, 'Map deleted successfully')
     @ns.response(400, 'Requirements not met to delete map')
     @ns.response(500, 'Failed to delete map')
     def delete(self, map_id):
         try:
-            asyncio.run(websocket.send_message(create_delete_message(map_id)))
-            return {'message': 'Map delete command sent successfully'}, 202
+            response = websocket.send_and_get_message(create_delete_message(map_id))
+            if response.startswith('Invalid'):
+                return {'message': response}, 400
+            delete_map_by_id(map_id)
+            return {'message': 'Map deleted successfully'}, 204
         except ValueError as e:
             return {'message': str(e)}, 400
         except Exception as e:
