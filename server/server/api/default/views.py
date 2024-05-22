@@ -8,7 +8,7 @@ from server.api.common import api
 from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
-from server.db.dataops.frame import get_nth_frame_by_ids
+from server.db.dataops.frame import get_nth_frame_by_ids, create_frame_from_msg
 from server.db.dataops.map import get_map, create_map, delete_map_by_id
 from server.db.dataops.vehicle import create_vehicle_by_map_id, get_vehicle, delete_vehicle_by_id, \
     update_vehicle_from_msg
@@ -35,7 +35,11 @@ class Version(Resource):
 class Update(Resource):
     def post(self):
         message = request.data.decode()
-        update_vehicle_from_msg(message)
+        if message.startswith('screen'):
+            frame = create_frame_from_msg(message)
+            print(f"Frame created: {frame}")
+        else:
+            update_vehicle_from_msg(message)
 
 
 @ns.route('/init/instance')

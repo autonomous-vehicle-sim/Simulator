@@ -7,10 +7,8 @@ import requests
 import websockets
 import websockets.exceptions
 
-from server.consts import WS_ADDRESS, WS_PORT
 from server.config import PORT as FLASK_PORT
-from server.db.dataops.frame import create_frame_from_msg
-from server.db.dataops.vehicle import update_vehicle_from_msg
+from server.consts import WS_ADDRESS, WS_PORT
 
 IP_ADDRESS = WS_ADDRESS
 PORT = WS_PORT
@@ -79,8 +77,7 @@ class WSConnection:
             async for message in websocket:
                 if message.startswith("screen"):
                     try:
-                        frame = create_frame_from_msg(message)
-                        print(f"Frame created: {frame}")
+                        requests.post(f"http://localhost:{FLASK_PORT}/api/update", data=message.encode())
                     except Exception as e:
                         print(f"Error creating frame, skipping: {e}")
                         traceback.print_exc()

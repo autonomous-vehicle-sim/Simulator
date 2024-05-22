@@ -9,7 +9,8 @@ def create_frame(vehicle: Vehicle, time: float, path_camera1: str, path_camera2:
     if get_latest_frame_from_vehicle(vehicle) is not None and time < get_latest_frame_from_vehicle(vehicle).timestamp:
         print("Time is less than last frame time. Skipping frame creation.")
         return None
-    frame = Frame(vehicle=vehicle, path_camera1=path_camera1, path_camera2=path_camera2, path_camera3=path_camera3)
+    frame = Frame(vehicle=vehicle, path_camera1=path_camera1, path_camera2=path_camera2, path_camera3=path_camera3,
+                  timestamp=time)
     db.session.add(frame)
     try:
         db.session.commit()
@@ -23,7 +24,7 @@ def create_frame(vehicle: Vehicle, time: float, path_camera1: str, path_camera2:
 def create_frame_from_msg(message: str) -> Frame:
     _, map_id, vehicle_id, _, time, path_camera1, path_camera2, path_camera3 = message.split(';')
     vehicle = get_vehicle(int(map_id), int(vehicle_id))
-    return create_frame(vehicle, float(time), path_camera1, path_camera2, path_camera3)
+    return create_frame(vehicle, float(time.replace(",", ".")), path_camera1, path_camera2, path_camera3)
 
 
 def get_frame(frame_id: int) -> Frame:
