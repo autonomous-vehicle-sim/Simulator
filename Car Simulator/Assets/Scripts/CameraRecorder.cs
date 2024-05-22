@@ -126,7 +126,7 @@ public class CameraRecorder : MonoBehaviour
             if(_client != null)
             {
                 float steer = _carController.CurrentSteeringAngle;
-                float engine = _carController.CurrentSpeed;
+                float engine = _carController.GetCurrentEngine();
                 float carId = _carController.carId;
                 float mapId = _carController.mapId;
                 string newSteerUpdateInfo = "steer;" + mapId + " " + carId + " " + steer.ToString() + " " + _currentFrameTimestamp.ToString();

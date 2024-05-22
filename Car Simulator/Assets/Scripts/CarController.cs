@@ -53,6 +53,11 @@ public class CarController : MonoBehaviour
         return TopSpeed;
     }
 
+    public float GetCurrentEngine()
+    {
+        return inputModifier.GetAccelInput();
+    }
+
     public void SetMapInfo(int mapId, int carId, int originX, int originY)
     {
         this.mapId = mapId;
