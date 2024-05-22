@@ -6,6 +6,7 @@
     <style>
         body {
             margin: 1%;
+            font-family: sans-serif;
         }
 
         main {
@@ -18,8 +19,8 @@
             display: inline-block;
         }
         .camera_view > img {
-            width: 33%;
-            height: auto;
+            width: 200px;
+            height: 200px;
         }
 
         section {
@@ -41,7 +42,17 @@
     </style>
     <script>
         const mapId = {{ mapId }};
-        const vehicleId = {{ vehicleId }}
+        const vehicleId = {{ vehicleId }};
+
+        function fetchImage(camera_id) {
+            fetch('/api/image/' + mapId + "/" + vehicleId + "/" + camera_id)
+                .then(res => {return res.blob()})
+                .then(blob => {
+                    const imgUrl = URL.createObjectURL(blob);
+                    const img = document.getElementById("cam" + camera_id);
+                    img.src = imgUrl;
+                });
+        }
 
         function turn() {
             const turnAngle = document.getElementById("turn-angle").value;
@@ -59,6 +70,7 @@
 
             addLog("Speed: " + driveSpeed);
             sendRequest(url, data, 'POST')
+            console.log(url);
         }
 
         function addLog(message) {
@@ -80,15 +92,22 @@
             });
         }
 
+        function refresh() {
+            fetchImage(1);
+            fetchImage(2);
+            fetchImage(3);
+        }
+
     </script>
 </head>
 <body>
     <main>
-        <div class="camera_view">
-            {% for view in camera_views %}
-                <img src="{{ view }}" alt="Camera view">
-            {% endfor %}
+        <div class="camera_view" id="views">
+            <img src="" alt="C1 view" id="cam1">
+            <img src="" alt="C2 view" id="cam2">
+            <img src="" alt="C3 view" id="cam3">
         </div>
+        <button onclick="refresh()">Refresh images</button>
 
         <section>
             <div class="logs" id="logs">
@@ -97,11 +116,11 @@
             <div class="controls">
                 <div class="turn">
                     <button onclick="turn()">Turn by angle</button>
-                    <input type="text" id="turn-angle" value="0">
+                    <input type="number" id="turn-angle" placeholder="[-100; 100]">
                 </div>
                 <div class="drive">
                     <button onclick="drive()">Drive</button>
-                    <input type="text" id="movement-speed" value="0">
+                    <input type="number" id="movement-speed" placeholder="[-100; 100]">
                 </div>
             </div>
         </section>

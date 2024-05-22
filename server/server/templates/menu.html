@@ -5,17 +5,39 @@
     <title>AVS - Menu</title>
 
     <style>
+        body {
+            font-family: sans-serif;
+        }
         .simulation {
+            border: 1px solid black;
             display: inline-block;
             margin: 1em;
+            padding: 12px;
         }
         .simulation > a > img {
             height: 7em;
             width: 7em;
         }
         .menu {
+            margin-right: 2%;
+            float: right;
             margin-top: 3em;
             display: block;
+        }
+        .new-vehicle {
+            display: block;
+        }
+        .new-vehicle div {
+            margin: 5px 0;
+        }
+        .create-vehicle {
+            display: block;
+            margin: 20px auto 0 auto;
+        }
+        .new-vehicle-label {
+            text-align: center;
+            margin-top: 24px;
+            font-weight: bold;
         }
     </style>
     <script>
@@ -23,7 +45,8 @@
             const url = "/api/delete/" + id;
 
             sendRequest(url);
-            window.location.reload();
+
+            window.setTimeout(function () {window.location.reload();}, 1000);
         }
 
         function generateMap() {
@@ -32,7 +55,8 @@
             const body = {"seed" : seed};
 
             sendRequestWithBody(url, body);
-            window.location.reload();
+
+            window.setTimeout(function () {window.location.reload();}, 1000);
         }
 
         function createNewVehicle(mapId) {
@@ -82,25 +106,35 @@
             <a href="http://localhost:5000/simulations/{{ simulator.id }}/0">
                 <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
             </a>
-            <button onclick="removeMap({{ simulator.id }})">Remove instance</button>
+            <button onclick="removeMap({{ simulator.id }})" style="float: right; margin-right: 2%">Remove instance</button>
             <div class="new-vehicle">
-                <p>New vehicle parameters:</p>
-                <label>Max Steering</label>
-                <input type="text" id="max-steer">
-                <label>Max engine power</label>
-                <input type="text" id="max-engine">
-                <label>Starting position X</label>
-                <input type="text" id="pos-x">
-                <label>Starting position Y</label>
-                <input type="text" id="pos-y">
-                <button onclick="createNewVehicle({{ simulator.id }})">Create vehicle</button>
+                <p class="new-vehicle-label">Create new vehicle</p>
+                <div>
+                    <label>Max Steering: </label>
+                    <input type="text" id="max-steer" value="40">
+                </div>
+                <div>
+                    <label>Max engine power: </label>
+                    <input type="text" id="max-engine" value="60">
+                </div>
+                <div>
+                    <label>Starting position X: </label>
+                    <input type="text" id="pos-x" value="0">
+                </div>
+                <div>
+                    <label>Starting position Y: </label>
+                    <input type="text" id="pos-y" value="0">
+                </div>
+                <button class="create-vehicle" onclick="createNewVehicle({{ simulator.id }})">Create vehicle</button>
             </div>
         </div>
     {% endfor %}
 
-    <div>
-        <input type="text" id="seed">
-        <button class="menu" onclick="generateMap()">Create new simulation</button>
+    </br>
+    <div class="menu">
+        <label>Map seed: </label>
+        <input type="text" id="seed" value="-1">
+        <button onclick="generateMap()">Create new simulation</button>
     </div>
 
 </body>

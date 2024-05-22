@@ -63,6 +63,7 @@ class WSConnection:
                 await self.__websocket_server.send(message)
             except websockets.exceptions.ConnectionClosedError:
                 print("ERROR: Simulator has disconnected")
+                print(websockets.exceptions.ConnectionClosedError)
                 self.__websocket_server = None
                 self.stop()
 
@@ -101,13 +102,14 @@ class WSConnection:
                 self.__message_queue.put(message)
         except websockets.exceptions.ConnectionClosedError:
             print("Simulator has disconnected.")
+            print(websockets.exceptions.ConnectionClosedError)
             self.__websocket_server = None
         finally:
             self.stop()
 
     async def __start_server(self) -> None:
         print("Starting WS server...")
-        async with websockets.serve(self.__handle_connection, IP_ADDRESS, PORT) as ws:
+        async with websockets.serve(self.__handle_connection, IP_ADDRESS, PORT, ping_timeout=None) as ws:
             print(f"WS server started at {ws.sockets[0].getsockname()[0]}:{ws.sockets[0].getsockname()[1]}")
             await self.__stop
         print("WS server stopped. Stopping entire server...")
