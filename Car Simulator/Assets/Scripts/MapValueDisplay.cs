@@ -1,14 +1,17 @@
-using System.IO;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System.Collections.Generic;
+using UnityEditor;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 public class MapValueDisplay : MonoBehaviour
 {
     public GameObject imagePrefab;
     public Image selectedImage;
+    public Button saveButton;
+    public Button loadButton;
 
     private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
     private const string DEFAULT_IMAGE_NAME = "0_empty.png";
@@ -21,8 +24,11 @@ public class MapValueDisplay : MonoBehaviour
     private const float CELL_HEIGHT = 50.0f;
     private const float DEFAULT_ROTATE_ANGLE = 0.0f;
     private const bool DIMENSION_TYPE_HEIGHT = true;
-    private int GRID_WIDTH;
-    private int GRID_HEIGHT;
+    private const string DEFAULT_DIALOGUE_DIRECTORY = "C://";
+    private const string DEFAULT_SAVE_FILE_NAME = "custom_map.map";
+    private const string PREFERRED_EXTENSION = "map";
+    private int gridWidth;
+    private int gridHeight;
     private (string imageName, float rotationAngle)[,] mapGrid = new(string, float)[MAX_GRID_HEIGHT, MAX_GRID_WIDTH];
 
     void Start()
@@ -30,12 +36,14 @@ public class MapValueDisplay : MonoBehaviour
         InitializeDefaultMapGrid();
         SizeInputScript.onEndEdit += ModifySizeOfGrid;
         GenerateGrid();
+        saveButton.onClick.AddListener(SaveImage);
+        loadButton.onClick.AddListener(LoadImage);
     }
 
     void InitializeDefaultMapGrid()
     {
-        GRID_WIDTH = DEFAULT_GRID_WIDTH;
-        GRID_HEIGHT = DEFAULT_GRID_HEIGHT;
+        gridWidth = DEFAULT_GRID_WIDTH;
+        gridHeight = DEFAULT_GRID_HEIGHT;
         for (int i = 0; i < MAX_GRID_HEIGHT; i++)
         {
             for (int j = 0; j < MAX_GRID_WIDTH; j++)
@@ -51,19 +59,19 @@ public class MapValueDisplay : MonoBehaviour
         DeleteGrid();
         if (dimensionType == DIMENSION_TYPE_HEIGHT)
         {
-            if(size < GRID_HEIGHT)
+            if(size < gridHeight)
             {
                 RemoveRows(size);
             }
-            GRID_HEIGHT = size;
+            gridHeight = size;
         }
         else
         {
-            if (size < GRID_WIDTH)
+            if (size < gridWidth)
             {
                 RemoveColumns(size);
             }
-            GRID_WIDTH = size;
+            gridWidth = size;
         }
         GenerateGrid();
     }
@@ -78,9 +86,9 @@ public class MapValueDisplay : MonoBehaviour
 
     void RemoveRows(int newSize)
     {
-        for (int i = newSize; i < GRID_HEIGHT; i++)
+        for (int i = newSize; i < gridHeight; i++)
         {
-            for (int j = 0; j < GRID_WIDTH; j++)
+            for (int j = 0; j < gridWidth; j++)
             {
                 mapGrid[i, j] = (DEFAULT_IMAGE_NAME, DEFAULT_ROTATE_ANGLE);
             }
@@ -89,9 +97,9 @@ public class MapValueDisplay : MonoBehaviour
 
     void RemoveColumns(int newSize)
     {
-        for (int i = 0; i < GRID_HEIGHT; i++)
+        for (int i = 0; i < gridHeight; i++)
         {
-            for (int j = newSize; j < GRID_WIDTH; j++)
+            for (int j = newSize; j < gridWidth; j++)
             {
                 mapGrid[i, j] = (DEFAULT_IMAGE_NAME, DEFAULT_ROTATE_ANGLE);
             }
@@ -103,13 +111,13 @@ public class MapValueDisplay : MonoBehaviour
         int imageIndex = 0;
         string imageName;
 
-        for (int y = 0; y < GRID_HEIGHT; y++)
+        for (int y = 0; y < gridHeight; y++)
         {
-            for (int x = 0; x < GRID_WIDTH; x++)
+            for (int x = 0; x < gridWidth; x++)
             {
                 float posX = (x * CELL_WIDTH) + (x * OFFSET);
                 float posY = (-y * CELL_HEIGHT) - (y * OFFSET);
-                imageName = IMAGES_DIRECTORY_PATH + mapGrid[y,x].imageName;
+                imageName = IMAGES_DIRECTORY_PATH + mapGrid[y, x].imageName;
 
                 DisplayPaletteValueImage(posX, posY, imageName, imageIndex);
                 imageIndex++;
@@ -117,7 +125,7 @@ public class MapValueDisplay : MonoBehaviour
         }
     }
 
-    void DisplayPaletteValueImage(float posX, float posY, string imagePath,int imageIndex)
+    void DisplayPaletteValueImage(float posX, float posY, string imagePath, int imageIndex)
     {
         GameObject image = CreateImage(posX, posY);
         image.name = imagePath;
@@ -139,14 +147,14 @@ public class MapValueDisplay : MonoBehaviour
     {
         Sprite sprite = LoadSprite(imagePath);
         gameObject.GetComponent<Image>().sprite = sprite;
-        int rowPosition = imageIndex / GRID_WIDTH;
-        int columnPosition = imageIndex % GRID_WIDTH;
-        RotateImage(gameObject, mapGrid[rowPosition,columnPosition].rotationAngle);
+        int rowPosition = imageIndex / gridWidth;
+        int columnPosition = imageIndex % gridWidth;
+        RotateImage(gameObject, mapGrid[rowPosition, columnPosition].rotationAngle);
     }
 
     Sprite LoadSprite(string path)
     {
-        byte[] fileData = File.ReadAllBytes(path);
+        byte[] fileData = System.IO.File.ReadAllBytes(path);
         Texture2D texture = new Texture2D(2, 2);
         texture.LoadImage(fileData);
         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
@@ -154,9 +162,10 @@ public class MapValueDisplay : MonoBehaviour
         return sprite;
     }
 
-    void RotateImage(GameObject gameObject,float angle)
+    void RotateImage(GameObject gameObject, float angle, float previousAngle = 0)
     {
         RectTransform imageRectTransform = gameObject.GetComponent<RectTransform>();
+        imageRectTransform.Rotate(Vector3.back, previousAngle);
         imageRectTransform.Rotate(Vector3.forward, angle);
     }
 
@@ -166,21 +175,47 @@ public class MapValueDisplay : MonoBehaviour
         button.onClick.AddListener(() => OnButtonClick(gameObject, imageIndex));
     }
 
-    void UpdateMapSelectedImage(GameObject gameObject,int imageIndex)
+    void UpdateMapSelectedImage(GameObject gameObject, int imageIndex)
     {
-        int rowPosition = imageIndex / GRID_WIDTH;
-        int columnPosition = imageIndex % GRID_WIDTH;
+        int rowPosition = imageIndex / gridWidth;
+        int columnPosition = imageIndex % gridWidth;
         string[] imageNameSplit = selectedImage.name.Split('/');
         float rotationAngle = selectedImage.transform.eulerAngles.z;
 
         Sprite sprite = LoadSprite(selectedImage.name);
         gameObject.GetComponent<Image>().sprite = sprite;
-        RotateImage(gameObject, rotationAngle);
-        mapGrid[rowPosition,columnPosition] = (imageNameSplit[imageNameSplit.Length-1], rotationAngle);
+        RotateImage(gameObject, rotationAngle, mapGrid[rowPosition, columnPosition].rotationAngle);
+        mapGrid[rowPosition, columnPosition] = (imageNameSplit[imageNameSplit.Length - 1], rotationAngle);
     }
 
-    void OnButtonClick(GameObject gameObject,int imageIndex)
+    void OnButtonClick(GameObject gameObject, int imageIndex)
     {
         UpdateMapSelectedImage(gameObject, imageIndex);
     }
+
+    public void SaveImage()
+    {
+        string saveFilePath = EditorUtility.SaveFilePanel("Save file", DEFAULT_DIALOGUE_DIRECTORY, DEFAULT_SAVE_FILE_NAME, PREFERRED_EXTENSION);
+
+        using (FileStream fileStream = new FileStream(saveFilePath, FileMode.Create))
+        {
+            IFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(fileStream, mapGrid);
+        }
+    }
+
+    public void LoadImage()
+    {
+        string selectedImagePath = EditorUtility.OpenFilePanel("Load file", DEFAULT_DIALOGUE_DIRECTORY, PREFERRED_EXTENSION);
+
+        using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
+        {
+            IFormatter formatter = new BinaryFormatter();
+            mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
+        }
+
+        DeleteGrid();
+        GenerateGrid();
+    }
+
 }

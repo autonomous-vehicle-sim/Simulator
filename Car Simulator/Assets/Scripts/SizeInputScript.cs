@@ -22,6 +22,7 @@ public class SizeInputScript : MonoBehaviour
     {
         inputField.text = DEFAULT_SIZE;
         inputField.onEndEdit.AddListener(OnEndEditListener);
+        errorText.gameObject.SetActive(false);
     }
 
     void OnEndEditListener(string input)
@@ -44,6 +45,10 @@ public class SizeInputScript : MonoBehaviour
                 errorText.text = "MAX WIDTH: " + MAX_WIDTH;
                 errorText.color = Color.red;
             }
+            else
+            {
+                errorText.gameObject.SetActive(false);
+            }
         }
         else
         {
@@ -56,6 +61,10 @@ public class SizeInputScript : MonoBehaviour
                 errorText.gameObject.SetActive(true);
                 errorText.text = "MAX HEIGHT: " + MAX_HEIGHT;
                 errorText.color = Color.red;
+            }
+            else
+            {
+                errorText.gameObject.SetActive(false);
             }
         }
         onEndEdit?.Invoke(numericValue.ToString(), dimensionType);
