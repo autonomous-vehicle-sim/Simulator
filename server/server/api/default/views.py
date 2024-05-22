@@ -36,8 +36,7 @@ class Update(Resource):
     def post(self):
         message = request.data.decode()
         if message.startswith('screen'):
-            frame = create_frame_from_msg(message)
-            print(f"Frame created: {frame}")
+            create_frame_from_msg(message)
         else:
             update_vehicle_from_msg(message)
 
