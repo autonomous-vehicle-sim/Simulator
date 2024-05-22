@@ -6,6 +6,7 @@
     <style>
         body {
             margin: 1%;
+            font-family: sans-serif;
         }
 
         main {
@@ -115,11 +116,11 @@
             <div class="controls">
                 <div class="turn">
                     <button onclick="turn()">Turn by angle</button>
-                    <input type="text" id="turn-angle" value="0">
+                    <input type="number" id="turn-angle" placeholder="[-100; 100]">
                 </div>
                 <div class="drive">
                     <button onclick="drive()">Drive</button>
-                    <input type="text" id="movement-speed" value="0">
+                    <input type="number" id="movement-speed" placeholder="[-100; 100]">
                 </div>
             </div>
         </section>
