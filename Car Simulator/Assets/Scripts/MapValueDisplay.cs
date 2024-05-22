@@ -5,6 +5,7 @@ using UnityEditor;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using TMPro;
 
 public class MapValueDisplay : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class MapValueDisplay : MonoBehaviour
     public Image selectedImage;
     public Button saveButton;
     public Button loadButton;
+    public Button playButton;
+
 
     private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
     private const string DEFAULT_IMAGE_NAME = "0_empty.png";
@@ -19,14 +22,15 @@ public class MapValueDisplay : MonoBehaviour
     private const int DEFAULT_GRID_HEIGHT = 5;
     private const int MAX_GRID_HEIGHT = 10;
     private const int MAX_GRID_WIDTH = 20;
-    private const float OFFSET = 1.0f;
-    private const float CELL_WIDTH = 50.0f;
-    private const float CELL_HEIGHT = 50.0f;
+    private const int CELL_WIDTH = 50;
+    private const int CELL_HEIGHT = 50;
+    private const float OFFSET = 2.0f;
     private const float DEFAULT_ROTATE_ANGLE = 0.0f;
     private const bool DIMENSION_TYPE_HEIGHT = true;
     private const string DEFAULT_DIALOGUE_DIRECTORY = "C://";
     private const string DEFAULT_SAVE_FILE_NAME = "custom_map.map";
     private const string PREFERRED_EXTENSION = "map";
+    private const string CREATED_MAP_PATH = "C:/UnitySimulator/created_map.png";
     private int gridWidth;
     private int gridHeight;
     private (string imageName, float rotationAngle)[,] mapGrid = new(string, float)[MAX_GRID_HEIGHT, MAX_GRID_WIDTH];
@@ -38,6 +42,7 @@ public class MapValueDisplay : MonoBehaviour
         GenerateGrid();
         saveButton.onClick.AddListener(SaveImage);
         loadButton.onClick.AddListener(LoadImage);
+        playButton.onClick.AddListener(PlaySimulation);
     }
 
     void InitializeDefaultMapGrid()
@@ -203,7 +208,11 @@ public class MapValueDisplay : MonoBehaviour
             formatter.Serialize(fileStream, mapGrid);
         }
     }
-
+    public void SetMaximumValueAfterLoadingMap()
+    {
+        gridWidth = MAX_GRID_WIDTH;
+        gridHeight = MAX_GRID_HEIGHT;
+    }
     public void LoadImage()
     {
         string selectedImagePath = EditorUtility.OpenFilePanel("Load file", DEFAULT_DIALOGUE_DIRECTORY, PREFERRED_EXTENSION);
@@ -213,9 +222,105 @@ public class MapValueDisplay : MonoBehaviour
             IFormatter formatter = new BinaryFormatter();
             mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
         }
-
+        SetMaximumValueAfterLoadingMap();
         DeleteGrid();
         GenerateGrid();
     }
+    public void PlaySimulation()
+    {
+        SaveMergedImage();
+    }
+    void SaveMergedImage()
+    {
+        int totalWidth = gridWidth * CELL_WIDTH;
+        int totalHeight = gridHeight * CELL_HEIGHT;
+        Texture2D mergedTexture = new Texture2D(totalWidth, totalHeight);
+        for (int i = 0; i < gridHeight; i++)
+        {
+            for (int j = 0; j < gridWidth; j++)
+            {
+                string imagePath = IMAGES_DIRECTORY_PATH + mapGrid[i, j].imageName;
+                float imageRotateAngle = mapGrid[i, j].rotationAngle;
+                byte[] fileData = System.IO.File.ReadAllBytes(imagePath);
+                Texture2D texture = new Texture2D(CELL_WIDTH, CELL_HEIGHT);
+                texture.LoadImage(fileData); 
+                Texture2D scaledTexture = ScaleTexture(texture, CELL_WIDTH, CELL_HEIGHT);
+                Texture2D rotatedTexture = RotateTexture(scaledTexture, imageRotateAngle);
 
+                Color[] pixels = rotatedTexture.GetPixels();
+                mergedTexture.SetPixels(j * CELL_WIDTH, (gridHeight - i - 1) * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT, pixels);
+            }
+        }
+
+        mergedTexture.Apply();
+        byte[] pngBytes = mergedTexture.EncodeToPNG();
+        File.WriteAllBytes(CREATED_MAP_PATH, pngBytes);
+    }
+    Texture2D ScaleTexture(Texture2D source, int targetWidth, int targetHeight)
+    {
+        RenderTexture tmpTexture = RenderTexture.GetTemporary(targetWidth, targetHeight);
+        RenderTexture.active = tmpTexture;
+        Graphics.Blit(source, tmpTexture);
+        Texture2D result = new Texture2D(targetWidth, targetHeight);
+        result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
+        result.Apply();
+        RenderTexture.ReleaseTemporary(tmpTexture);
+        return result;
+    }
+    Texture2D RotateTexture(Texture2D texture, float angle)
+    {
+        int width = texture.width;
+        int height = texture.height;
+        Texture2D rotatedTexture = new Texture2D(width, height);
+        Color[] originalPixels = texture.GetPixels();
+        Color[] rotatedPixels = new Color[originalPixels.Length];
+
+        float angleRad = -angle * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(angleRad);
+        float sin = Mathf.Sin(angleRad);
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float newX = cos * (x - centerX) - sin * (y - centerY) + centerX;
+                float newY = sin * (x - centerX) + cos * (y - centerY) + centerY;
+
+                if (newX >= 0 && newX < width && newY >= 0 && newY < height)
+                {
+                    rotatedPixels[y * width + x] = GetBilinearPixel(originalPixels, width, height, newX, newY);
+                }
+                else
+                {
+                    rotatedPixels[y * width + x] = new Color(0, 0, 0, 0);
+                }
+            }
+        }
+
+        rotatedTexture.SetPixels(rotatedPixels);
+        rotatedTexture.Apply();
+        return rotatedTexture;
+    }
+
+    Color GetBilinearPixel(Color[] pixels, int width, int height, float positionX, float positionY)
+    {
+        int x = Mathf.FloorToInt(positionX);
+        int y = Mathf.FloorToInt(positionY);
+
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x >= width - 1) x = width - 2;
+        if (y >= height - 1) y = height - 2;
+
+        float positionXRatio = positionX - x;
+        float positionYRatio = positionY - y;
+        float xOpposite = 1 - positionXRatio;
+        float yOpposite = 1 - positionYRatio;
+
+        Color result = (pixels[(y * width) + x] * xOpposite + pixels[(y * width) + x + 1] * positionXRatio) * yOpposite +
+                       (pixels[((y + 1) * width) + x] * xOpposite + pixels[((y + 1) * width) + x + 1] * positionXRatio) * positionYRatio;
+        return result;
+    }
 }
