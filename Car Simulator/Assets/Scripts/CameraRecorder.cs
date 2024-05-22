@@ -112,26 +112,26 @@ public class CameraRecorder : MonoBehaviour
         _currentFrameTimestamp = Time.time;
         if (_timeSinceLastCapture > 1 / _framesPerSecond)
         {
-            string newPhotosUpdateInfo = _carController.mapId.ToString() + " " + _carController.carId.ToString() + " "
-                                       + _framesCaptured.ToString() + " " + _currentFrameTimestamp.ToString() + " ";
+            string newPhotosUpdateInfo = _carController.mapId.ToString() + ";" + _carController.carId.ToString() + ";"
+                                       + _framesCaptured.ToString() + ";" + _currentFrameTimestamp.ToString() + ";";
             _timeSinceLastCapture = 0;
             for(int i = 0; i < _cameras.Length; i++)
             {
                 String filepath = _capturePath + _cameras[i].name + "/" + _framesCaptured.ToString() + ".png";
-                newPhotosUpdateInfo += "\"" + filepath + "\" ";
+                newPhotosUpdateInfo += ";" + filepath + ";";
                 SaveScreenshot(filepath, _cameras[i]);
             }
             _framesCaptured++;
             SaveCarData(_dataPath);
             if(_client != null)
             {
-                float steer = _carController.CurrentSpeed * 100.0f;
-                float engine = _carController.CurrentSteeringAngle * 100.0f;
+                float steer = _carController.CurrentSteeringAngle;
+                float engine = _carController.GetCurrentEngine();
                 float carId = _carController.carId;
                 float mapId = _carController.mapId;
-                string newSteerUpdateInfo = "steer " + mapId + " " + carId + " " + steer.ToString() + " " + _currentFrameTimestamp.ToString();
+                string newSteerUpdateInfo = "steer;" + mapId + " " + carId + " " + steer.ToString() + " " + _currentFrameTimestamp.ToString();
                 string newEngineUpdateInfo = "engine " + mapId + " " + carId + " " + engine.ToString() + " " + _currentFrameTimestamp.ToString();
-                _client.SendMessageToServer(newPhotosUpdateInfo);
+                _client.SendMessageToServer("screen;" + newPhotosUpdateInfo);
                 _client.SendMessageToServer(newSteerUpdateInfo);
                 _client.SendMessageToServer(newEngineUpdateInfo);
             }
