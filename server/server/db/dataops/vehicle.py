@@ -41,6 +41,12 @@ def update_vehicle(vehicle: Vehicle, engine: float, steer: float, time: float) -
     vehicle.engine = engine
     vehicle.steer = steer
     vehicle.last_update = time
+    try:
+        db.session.commit()
+    except DatabaseError as e:
+        print('Error updating vehicle. Rolling back. Error:', e)
+        db.session.rollback()
+        raise
 
 
 def update_vehicle_from_msg(message: str) -> None:
