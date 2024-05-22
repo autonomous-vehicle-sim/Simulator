@@ -51,9 +51,7 @@ class WSConnection:
             responses.append(response)
         self.__message_lock.release()
         if expected_msg == 1:
-            print(f"Message: {response}")
             return response
-        print(f"Messages: {responses}")
         return responses
 
     async def send_message(self, message) -> None:
@@ -62,7 +60,6 @@ class WSConnection:
             raise ConnectionError("Simulator is not connected")
         else:
             try:
-                print(f"Sending message: {message}")
                 await self.__websocket_server.send(message)
             except websockets.exceptions.ConnectionClosedError:
                 print("ERROR: Simulator has disconnected")
@@ -70,24 +67,33 @@ class WSConnection:
                 self.__websocket_server = None
                 self.stop()
 
+    def handle_event(self, message) -> None:
+        if message.startswith("screen"):
+            try:
+                loop = asyncio.get_event_loop()
+                loop.run_in_executor(None, requests.post, f"http://localhost:{FLASK_PORT}/api/update",
+                                     message.encode())
+            except Exception as e:
+                print(f"Error creating frame, skipping: {e}")
+                traceback.print_exc()
+        elif message.startswith("engine") or message.startswith("steer"):
+            try:
+                loop = asyncio.get_event_loop()
+                loop.run_in_executor(None, requests.post, f"http://localhost:{FLASK_PORT}/api/update",
+                                     message.encode())
+            except Exception as e:
+                print(f"Error updating vehicle, skipping: {e}")
+                traceback.print_exc()
+
     async def __handle_connection(self, websocket, path) -> None:
         print("Simulator has connected")
         await websocket.send("Connected")
         self.__websocket_server = websocket
         try:
             async for message in websocket:
-                if message.startswith("screen"):
+                if message.startswith("screen") or message.startswith("engine") or message.startswith("steer"):
                     try:
-                        requests.post(f"http://localhost:{FLASK_PORT}/api/update", data=message.encode())
-                    except Exception as e:
-                        print(f"Error creating frame, skipping: {e}")
-                        traceback.print_exc()
-                    finally:
-                        continue
-                elif message.startswith("engine") or message.startswith("steer"):
-                    try:
-                        requests.post(f"http://localhost:{FLASK_PORT}/api/update", data=message.encode())
-                        print(f"Vehicle updated")
+                        self.handle_event(message)
                     except Exception as e:
                         print(f"Error updating vehicle, skipping: {e}")
                         traceback.print_exc()

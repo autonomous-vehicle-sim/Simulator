@@ -34,13 +34,13 @@ def get_vehicles(map_id: int) -> list[Vehicle]:
     return Vehicle.query.filter_by(map_id=map_id).all()
 
 
-def update_vehicle(vehicle: Vehicle, engine: float, steer: float, time: float) -> None:
-    if time < vehicle.last_update:
-        print('Time is less than last update time. Skipping update.')
-        return
-    vehicle.engine = engine
-    vehicle.steer = steer
-    vehicle.last_update = time
+def update_vehicle(vehicle: Vehicle, engine: float | None, steer: float | None, time: float | None) -> None:
+    if engine is not None:
+        vehicle.engine = engine
+    if steer is not None:
+        vehicle.steer = steer
+    if time is not None:
+        vehicle.last_update = time
     try:
         db.session.commit()
     except DatabaseError as e:
