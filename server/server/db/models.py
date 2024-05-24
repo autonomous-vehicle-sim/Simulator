@@ -7,6 +7,7 @@ class Map(db.Model):
     __tablename__ = 'map'
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     seed = db.Column(db.Integer, nullable=False)
+    aerial_view_path = db.Column(db.String(255), nullable=False)
 
 
 class Vehicle(db.Model):

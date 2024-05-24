@@ -3,8 +3,8 @@ from sqlalchemy.exc import DatabaseError
 from server.db.models import Map, db
 
 
-def create_map(id: int, seed: int) -> Map:
-    map_obj = Map(id=id, seed=seed)
+def create_map(id: int, seed: int, aerial_view_path: str) -> Map:
+    map_obj = Map(id=id, seed=seed, aerial_view_path=aerial_view_path)
     db.session.add(map_obj)
     try:
         db.session.commit()
