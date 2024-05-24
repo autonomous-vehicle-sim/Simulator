@@ -40,8 +40,7 @@ public class TCPClient : MonoBehaviour
             {
                 reportedStateOfMaps[i] = true;
                 screenshot.TakeScreenshot(maps[i].GetComponentInChildren<Camera>());
-                SendMessageToServer("map " + i.ToString() + " finished initialization");
-                //SendMessageToServer("mapscreen " + i.ToString() + screenshot.latestScreenshotPath);
+                SendMessageToServer("map;" + i.ToString() + ";finished initialization;"+ screenshot.latestScreenshotPath);
             }
         }
         if (actionQueue.Count > 0)
