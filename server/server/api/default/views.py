@@ -259,7 +259,7 @@ class AerialView(Resource):
         try:
             map_obj = get_map(map_id)
             return send_file(map_obj.aerial_view_path, mimetype='image/png')
-        except ValueError as e:
+        except (ValueError, TypeError) as e:
             return {'message': str(e)}, 400
         except NotFound as e:
             return {'message': str(e)}, 404
