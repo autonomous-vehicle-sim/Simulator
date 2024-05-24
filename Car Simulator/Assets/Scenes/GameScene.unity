@@ -3276,105 +3276,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: field of view
-      value: 80
-      objectReference: {fileID: 0}
-    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1108884753501397004, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2829787226532518041, guid: f4f516068a4241b499e09e335959a739,
         type: 3}
       propertyPath: m_Name
       value: Car
-      objectReference: {fileID: 0}
-    - target: {fileID: 3821774932165485784, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 109.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 3821774932165485784, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.97976786
-      objectReference: {fileID: 0}
-    - target: {fileID: 3821774932165485784, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0.20013751
-      objectReference: {fileID: 0}
-    - target: {fileID: 3821774932165485784, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3821774932165485784, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3821774932165485784, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 23.09
-      objectReference: {fileID: 0}
-    - target: {fileID: 3829347363763636521, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3829347363763636521, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3829347363763636521, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3829347363763636521, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5210541271170032085, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5210541271170032085, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5210541271170032085, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5210541271170032085, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7033704538522054162, guid: f4f516068a4241b499e09e335959a739,
         type: 3}
@@ -3424,26 +3329,6 @@ PrefabInstance:
     - target: {fileID: 7033704538522054162, guid: f4f516068a4241b499e09e335959a739,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8224228676045266366, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8224228676045266366, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8224228676045266366, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8224228676045266366, guid: f4f516068a4241b499e09e335959a739,
-        type: 3}
-      propertyPath: m_BackGroundColor.r
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
