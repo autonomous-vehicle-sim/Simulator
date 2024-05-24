@@ -74,6 +74,7 @@
             }
 
             sendRequestWithBody(url, data);
+            window.setTimeout(function () {window.location.reload();}, 1000);
         }
 
         function sendRequestWithBody(url, data) {
