@@ -1,4 +1,6 @@
 @echo off
+cd server
+
 :start
 python -m flask --app server run
 
