@@ -217,3 +217,7 @@ section > div > p {
     font-family: monospace;
     margin: 0 0 8px 0;
 }
+
+.not-available {
+    text-align: center;
+}

@@ -34,6 +34,9 @@ class WSConnection:
 
     def is_running(self) -> bool:
         return self.__stop is not None and not self.__stop.done()
+    
+    def is_client_connected(self) -> bool:
+        return self.__websocket_server is not None
 
     def get_message(self) -> str:
         self.__message_lock.acquire()

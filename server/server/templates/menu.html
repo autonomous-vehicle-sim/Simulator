@@ -11,6 +11,8 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <title>AVS - Simulations</title>
     <script>
+        let isClientConnected = false;
+
         function removeMap(id) {
             const url = "/api/delete/" + id;
 
@@ -68,10 +70,37 @@
                 },
             });
         }
+
+        function checkClientStatus() {
+            const url = "/api/client-status";
+            let status = false;
+
+            sendRequest(url, "GET")
+                .then((response) => response.status)
+                .then((requestStatus) => {
+                    if (requestStatus == 200) {
+                        document.querySelector(".not-available").style.display = "none";
+                        document.querySelector(".app-container").style.display = "block";
+                    }
+                    else {
+                        document.querySelector(".not-available").style.display = "block";
+                        document.querySelector(".app-container").style.display = "none";
+                    }
+                });
+        }
+
+        window.addEventListener("DOMContentLoaded", function() {
+            checkClientStatus();
+            window.setInterval(checkClientStatus, 10000);
+        });
     </script>
 </head>
 <body>
-    <div class="app-container">
+    <div class="not-available" style="display: none;">
+        <p>Unity client not connected.</p>
+        <p>Retrying in 10 seconds...</p>
+    </div>
+    <div class="app-container" style="display: none;">
         <h2>Currently running simulations</h2>
         <div class="menu">
             <label>Map seed: </label>

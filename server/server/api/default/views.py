@@ -301,3 +301,14 @@ class DeleteMap(Resource):
             return {'message': str(e)}, 400
         except Exception as e:
             return {'message': str(e)}, 500
+
+
+@ns.route('/client-status')
+class UnityStatus(Resource):
+    @ns.response(200, 'Unity client connected')
+    @ns.response(503, 'Unity client not connected')
+    def get(self):
+        if websocket.is_client_connected():
+            return {'message': 'Unity client connected'}, 200
+        else:
+            return {'message': 'Unity client not connected'}, 503
