@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="title" content="AVS - Simulations">
+    <meta name="description" content="Unity simulator with a web-based interface intended for real-life vehicle training.">
+    <meta name="author" content="Michał Krause, Konrad Bryłowski, Aleksander Czerwionka, Krystian Nowakowski, Łukasz Nowakowski">
+    <meta name="keywords" content="unity, simulator, vehicle, ai, training, learning, ml, machine learning">
+    <meta name="language" content="English">
+    <title>AVS - Simulations</title>
+    <style>
+        body {
+            background: #1e1e1e;
+            color: #fafafa;
+            font-family: "Trebuchet MS";
+        }
+        a {
+            color: #fafafa;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            letter-spacing: 0.5px;
+        }
+        input {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            color: #fafafa;
+            padding: 6px;
+        }
+        button {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            color: #fafafa;
+            padding: 6px 12px;  
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2d2d30;
+        }
+        #seed {
+            margin: 0 16px;
+        }
+        .simulations {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .simulation {
+            border: 1px solid #3e3e42;
+            display: inline-block;
+            margin: 1em;
+            padding: 12px;
+        }
+        .simulation > a > img {
+            height: 7em;
+            width: 7em;
+        }
+        .menu {
+            text-align: center;
+        }
+        .new-vehicle {
+            display: block;
+        }
+        .new-vehicle div {
+            margin: 5px 0;
+        }
+        .create-vehicle {
+            display: block;
+            margin: 20px auto 0 auto;
+        }
+        .new-vehicle-label {
+            text-align: center;
+            margin-top: 24px;
+            font-weight: bold;
+        }
+        .remove-instance {
+            float: right;
+            margin-right: 2%
+        }
+    </style>
+    <script>
+        function removeMap(id) {
+            const url = "/api/delete/" + id;
+
+            sendRequest(url);
+
+            window.setTimeout(function () {window.location.reload();}, 1000);
+        }
+
+        function generateMap() {
+            const seed = parseInt(document.getElementById("seed").value);
+            const url = "/api/init/map";
+            const body = {"seed" : seed};
+
+            sendRequestWithBody(url, body);
+
+            window.setTimeout(function () {window.location.reload();}, 1000);
+        }
+
+        function createNewVehicle(mapId) {
+            const url = "/api/init/instance";
+            const maxSteer = parseInt(document.getElementById("max-steer").value);
+            const maxEngine = parseInt(document.getElementById("max-engine").value);
+            const posX = parseInt(document.getElementById("pos-x").value);
+            const posY = parseInt(document.getElementById("pos-y").value);
+            const data = {
+                "map_id": mapId,
+                "max_steer": maxSteer,
+                "max_engine": maxEngine,
+                "pos_x": posX,
+                "pos_y": posY
+            }
+
+            sendRequestWithBody(url, data);
+        }
+
+        function sendRequestWithBody(url, data) {
+            fetch(url, {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+        }
+
+        function sendRequest(url) {
+            fetch(url, {
+                method: "DELETE",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            });
+        }
+
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <h2>Currently running simulations</h2>
+        <div class="menu">
+            <label>Map seed: </label>
+            <input type="text" id="seed" value="-1">
+            <button onclick="generateMap()">Create new simulation</button>
+        </div>
+        <div class="simulations">
+            {% for simulator in simulations %}
+            <div class="simulation">
+                <!-- TODO: change a element last parameter from 0 to dynamic-->
+                <a href="http://localhost:5000/simulations/{{ simulator.id }}/0">
+                    <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
+                </a>
+                <button class="remove-instance" onclick="removeMap({{ simulator.id }})">Remove instance</button>
+                <div class="new-vehicle">
+                    <p class="new-vehicle-label">Create new vehicle</p>
+                    <div>
+                        <label>Max Steering: </label>
+                        <input type="text" id="max-steer" value="40">
+                    </div>
+                    <div>
+                        <label>Max engine power: </label>
+                        <input type="text" id="max-engine" value="60">
+                    </div>
+                    <div>
+                        <label>Starting position X: </label>
+                        <input type="text" id="pos-x" value="0">
+                    </div>
+                    <div>
+                        <label>Starting position Y: </label>
+                        <input type="text" id="pos-y" value="0">
+                    </div>
+                    <button class="create-vehicle" onclick="createNewVehicle({{ simulator.id }})">Create vehicle</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

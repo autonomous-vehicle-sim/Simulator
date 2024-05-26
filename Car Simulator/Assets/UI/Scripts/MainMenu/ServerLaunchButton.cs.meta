@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Car Simulator/Assets/Scripts/CarControllerPlayable.cs.meta
+guid: ee57beccda8911a46a6f759361553699
+========
 guid: 91ff37a1f2715d24bb7c8ee037f297a8
+>>>>>>>> ebd91df9caac3d97b20711a65b9d0635036b86c8:Car Simulator/Assets/UI/Scripts/MainMenu/ServerLaunchButton.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
