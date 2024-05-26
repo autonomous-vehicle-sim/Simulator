@@ -2,14 +2,54 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AVS - Menu</title>
-
+    <meta name="title" content="AVS - Simulations">
+    <meta name="description" content="Unity simulator with a web-based interface intended for real-life vehicle training.">
+    <meta name="author" content="Michał Krause, Konrad Bryłowski, Aleksander Czerwionka, Krystian Nowakowski, Łukasz Nowakowski">
+    <meta name="keywords" content="unity, simulator, vehicle, ai, training, learning, ml, machine learning">
+    <meta name="language" content="English">
+    <title>AVS - Simulations</title>
     <style>
         body {
-            font-family: sans-serif;
+            background: #1e1e1e;
+            color: #fafafa;
+            font-family: "Trebuchet MS";
+        }
+        a {
+            color: #fafafa;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            letter-spacing: 0.5px;
+        }
+        input {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            color: #fafafa;
+            padding: 6px;
+        }
+        button {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            color: #fafafa;
+            padding: 6px 12px;  
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2d2d30;
+        }
+        #seed {
+            margin: 0 16px;
+        }
+        .simulations {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
         }
         .simulation {
-            border: 1px solid black;
+            border: 1px solid #3e3e42;
             display: inline-block;
             margin: 1em;
             padding: 12px;
@@ -19,10 +59,7 @@
             width: 7em;
         }
         .menu {
-            margin-right: 2%;
-            float: right;
-            margin-top: 3em;
-            display: block;
+            text-align: center;
         }
         .new-vehicle {
             display: block;
@@ -38,6 +75,10 @@
             text-align: center;
             margin-top: 24px;
             font-weight: bold;
+        }
+        .remove-instance {
+            float: right;
+            margin-right: 2%
         }
     </style>
     <script>
@@ -99,48 +140,48 @@
     </script>
 </head>
 <body>
-    <h2>Currently running simulations:</h2>
-
-    {% for simulator in simulations %}
-        <div class="simulation">
-            {% for i in vehicles[loop.index0] %}
+    <div class="app-container">
+        <h2>Currently running simulations</h2>
+        <div class="menu">
+            <label>Map seed: </label>
+            <input type="text" id="seed" value="-1">
+            <button onclick="generateMap()">Create new simulation</button>
+        </div>
+        <div class="simulations">
+            {% for simulator in simulations %}
+            <div class="simulation">
+                {% for i in vehicles[loop.index0] %}
                 <a href="http://localhost:5000/simulations/{{ simulator.id }}/{{ i.vehicle_id }}">
                     <!-- TODO: if aerial view implemented, replace element's content to:
-                        <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
+                    <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
                     -->
                     Vehicle {{ i.vehicle_id }}
                 </a>
-            {% endfor %}
-            <button onclick="removeMap({{ simulator.id }})" style="float: right; margin-right: 2%">Remove instance</button>
-            <div class="new-vehicle">
-                <p class="new-vehicle-label">Create new vehicle</p>
-                <div>
-                    <label>Max Steering: </label>
-                    <input type="text" id="max-steer" value="40">
+                {% endfor %}
+                <button class="remove-instance" onclick="removeMap({{ simulator.id }})">Remove instance</button>
+                <div class="new-vehicle">
+                    <p class="new-vehicle-label">Create new vehicle</p>
+                    <div>
+                        <label>Max Steering: </label>
+                        <input type="text" id="max-steer" value="40">
+                    </div>
+                    <div>
+                        <label>Max engine power: </label>
+                        <input type="text" id="max-engine" value="60">
+                    </div>
+                    <div>
+                        <label>Starting position X: </label>
+                        <input type="text" id="pos-x" value="0">
+                    </div>
+                    <div>
+                        <label>Starting position Y: </label>
+                        <input type="text" id="pos-y" value="0">
+                    </div>
+                    <button class="create-vehicle" onclick="createNewVehicle({{ simulator.id }})">Create vehicle</button>
                 </div>
-                <div>
-                    <label>Max engine power: </label>
-                    <input type="text" id="max-engine" value="60">
-                </div>
-                <div>
-                    <label>Starting position X: </label>
-                    <input type="text" id="pos-x" value="0">
-                </div>
-                <div>
-                    <label>Starting position Y: </label>
-                    <input type="text" id="pos-y" value="0">
-                </div>
-                <button class="create-vehicle" onclick="createNewVehicle({{ simulator.id }})">Create vehicle</button>
             </div>
+            {% endfor %}
         </div>
-    {% endfor %}
-
-    </br>
-    <div class="menu">
-        <label>Map seed: </label>
-        <input type="text" id="seed" value="-1">
-        <button onclick="generateMap()">Create new simulation</button>
     </div>
-
 </body>
 </html>
