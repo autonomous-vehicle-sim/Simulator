@@ -83,8 +83,10 @@ class InitMap(Resource):
                 seed = -1
             response = websocket.send_and_get_message(create_init_map_message(seed), 2)
             if "finished initialization" in response[1]:
+                # map;<map_id>;finished initialization;<path>
+                _, map_id, _, _, aerial_view_path = response[1].split(';')
                 map_id = int(response[1].split(' ')[1])
-                map_obj = create_map(map_id, seed)
+                map_obj = create_map(map_id, seed, aerial_view_path)
                 return {'message': f'Map {map_obj.id} initialized successfully'}, 201
         except (ValueError, KeyError) as e:
             return {'message': str(e)}, 400
@@ -104,6 +106,8 @@ class GetSteering(Resource):
             return vehicle.steer, 200
         except ValueError as e:
             return {'message': str(e)}, 400
+        except NotFound as e:
+            return {'message': str(e)}, 404
         except Exception as e:
             return {'message': str(e)}, 500
 
@@ -120,6 +124,8 @@ class GetEngine(Resource):
             return vehicle.engine, 200
         except ValueError as e:
             return {'message': str(e)}, 400
+        except NotFound as e:
+            return {'message': str(e)}, 404
         except Exception as e:
             return {'message': str(e)}, 500
 
@@ -190,7 +196,7 @@ class Image(Resource):
     @ns.response(400, 'Requirements not met to fetch image data')
     @ns.response(404, 'Image data not found')
     @ns.response(500, 'Failed to fetch image data')
-    @ns.produces(['image/jpeg'])
+    @ns.produces(['image/png'])
     def get(self, map_id, instance_id, camera_id, image_id):
         try:
             response = None
@@ -203,10 +209,12 @@ class Image(Resource):
                 elif camera_id == 3:
                     response = frame.path_camera3
                 if response:
-                    return send_file(response, mimetype='image/jpeg')
+                    return send_file(response, mimetype='image/png')
             return {'message': 'Image data not found'}, 404
         except ValueError as e:
             return {'message': str(e)}, 400
+        except NotFound as e:
+            return {'message': str(e)}, 404
         except Exception as e:
             return {'message': str(e)}, 500
 
@@ -217,7 +225,7 @@ class Image(Resource):
     @ns.response(400, 'Requirements not met to fetch image data')
     @ns.response(404, 'Image data not found')
     @ns.response(500, 'Failed to fetch image data')
-    @ns.produces(['image/jpeg'])
+    @ns.produces(['image/png'])
     def get(self, map_id, instance_id, camera_id):
         try:
             response = None
@@ -230,12 +238,35 @@ class Image(Resource):
                 elif camera_id == 3:
                     response = frame.path_camera3
                 if response:
-                    return send_file(response, mimetype='image/jpeg')
+                    return send_file(response, mimetype='image/png')
             return {'message': 'Image data not found'}, 404
         except ValueError as e:
             return {'message': str(e)}, 400
+        except NotFound as e:
+            return {'message': str(e)}, 404
         except Exception as e:
             return {'message': str(e)}, 500
+
+
+@ns.route('/<int:map_id>/aerial')
+class AerialView(Resource):
+    @ns.response(200, 'Aerial view fetched successfully')
+    @ns.response(400, 'Bad request')
+    @ns.response(404, 'Map not found')
+    @ns.response(500, 'Failed to fetch aerial view')
+    @ns.produces(['image/png'])
+    def get(self, map_id):
+        try:
+            map_obj = get_map(map_id)
+            return send_file(map_obj.aerial_view_path, mimetype='image/png')
+        except (ValueError, TypeError) as e:
+            return {'message': str(e)}, 400
+        except NotFound as e:
+            return {'message': str(e)}, 404
+        except Exception as e:
+            return {'message': str(e)}, 500
+
+
 
 @ns.route('/delete/<int:map_id>/<int:instance_id>')
 class DeleteInstance(Resource):

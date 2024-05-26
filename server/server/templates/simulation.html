@@ -5,44 +5,104 @@
     <title>{{ title }}</title>
     <style>
         body {
-            margin: 1%;
-            font-family: sans-serif;
+            background: #1e1e1e;
+            color: #fafafa;
+            font-family: "Trebuchet MS";
         }
-
+        a {
+            color: #fafafa;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            letter-spacing: 0.5px;
+        }
+        input {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            color: #fafafa;
+            padding: 6px;
+        }
+        button {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            color: #fafafa;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2d2d30;
+        }
         main {
             display: flex;
             flex-direction: column;
             height: 100vh
         }
-
         .camera_view {
-            display: inline-block;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
         }
         .camera_view > img {
             width: 200px;
             height: 200px;
+            margin: 0 20px;
+            text-align: center;
+            line-height: 200px;
+            border: 1px solid #3e3e42;
+            font-size: 20px;
         }
-
         section {
-            display: inline-flex;
+            display: flex;
+            justify-content: center;
         }
-
         .logs {
-            padding: 1%;
-            border: 1px solid black;
+            padding: 10px;
+            border: 1px solid #3e3e42;
             width: 20em;
             height: 20em;
             overflow-y: auto;
         }
-
         .controls {
             display: inline-block;
             margin-left: 2em;
+            padding-top: 43px;
+        }
+        .controls div {
+            margin-bottom: 16px;
+        }
+        main > p {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+        .image-controls {
+            text-align: center;
+            margin: 10px 0 32px 0;
+        }
+        .image-controls button {
+            margin: 0 8px;
+        }
+        .home-link {
+            text-align: center;
+            margin: 40px 0 0 0;
+        }
+        section > div > p {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .logs p {
+            font-family: monospace;
+            margin: 0 0 8px 0;
         }
     </style>
     <script>
         const mapId = {{ mapId }};
         const vehicleId = {{ vehicleId }};
+
+        let cameraInterval = 1000;          // [ms]
+        let autoRefresh = true;
 
         function fetchImage(camera_id) {
             fetch('/api/image/' + mapId + "/" + vehicleId + "/" + camera_id)
@@ -56,6 +116,9 @@
 
         function turn() {
             const turnAngle = document.getElementById("turn-angle").value;
+            if (turnAngle == undefined || turnAngle == null || turnAngle == NaN) return;
+            if (turnAngle < -100 || turnAngle > 100) return;
+
             const data = {"steering": parseInt(turnAngle)};
             const url = "/api/control/" + mapId + "/" + vehicleId + "/steering";
 
@@ -65,12 +128,14 @@
 
         function drive() {
             const driveSpeed = document.getElementById("movement-speed").value;
+            if (driveSpeed == undefined || driveSpeed == null || driveSpeed == NaN) return;
+            if (driveSpeed < -100 || driveSpeed > 100) return;
+
             const data = {"engine": parseInt(driveSpeed)};
             const url = "/api/control/" + mapId + "/" + vehicleId + "/engine";
 
             addLog("Speed: " + driveSpeed);
             sendRequest(url, data, 'POST')
-            console.log(url);
         }
 
         function addLog(message) {
@@ -98,21 +163,39 @@
             fetchImage(3);
         }
 
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            document.querySelector("#auto-refresh").innerHTML = "Turn " + (autoRefresh ? "off" : "on") + " auto-refresh";
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            window.setTimeout(function() { refresh(); }, 1000);
+        });
+
+        window.setInterval(function() {
+            if (autoRefresh) {
+                refresh();
+            }
+        }, cameraInterval);
     </script>
 </head>
 <body>
     <main>
+        <p>Vehicle cameras</p>
         <div class="camera_view" id="views">
             <img src="" alt="C1 view" id="cam1">
             <img src="" alt="C2 view" id="cam2">
             <img src="" alt="C3 view" id="cam3">
         </div>
-        <button onclick="refresh()">Refresh images</button>
-
+        <div class="image-controls">
+            <button onclick="refresh()">Refresh images</button>
+            <button onclick="toggleAutoRefresh()" id="auto-refresh">Turn off auto-refresh</button>
+        </div>
         <section>
-            <div class="logs" id="logs">
+            <div>
+                <p>Vehicle logs</p>
+                <div class="logs" id="logs"></div>
             </div>
-
             <div class="controls">
                 <div class="turn">
                     <button onclick="turn()">Turn by angle</button>
@@ -124,6 +207,7 @@
                 </div>
             </div>
         </section>
+        <a class="home-link" href="/simulations">Return</a>
     </main>
 </body>
 </html>
