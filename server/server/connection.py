@@ -14,7 +14,7 @@ IP_ADDRESS = WS_ADDRESS
 PORT = WS_PORT
 
 
-def __handle_event(message) -> None:
+def _handle_event(message) -> None:
     if message.startswith("screen"):
         try:
             loop = asyncio.get_event_loop()
@@ -96,7 +96,7 @@ class WSConnection:
             async for message in websocket:
                 if message.startswith("screen") or message.startswith("engine") or message.startswith("steer"):
                     try:
-                        __handle_event(message)
+                        _handle_event(message)
                     except Exception as e:
                         print(f"Error updating vehicle, skipping: {e}")
                         traceback.print_exc()

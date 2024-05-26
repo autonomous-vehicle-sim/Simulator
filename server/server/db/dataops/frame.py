@@ -4,17 +4,17 @@ from server.db.models import Vehicle, db
 
 
 def insert_updated_vehicle_state(message: str) -> Vehicle:
-    _, map_id, vehicle_id, _, time, path_camera1, path_camera2, path_camera3, steer, engine = message.split(';')
-    updated_state = Vehicle(map_id=int(map_id), vehicle_id=int(vehicle_id), path_camera1=path_camera1,
-                            path_camera2=path_camera2, path_camera3=path_camera3, steer=float(steer),
-                            engine=float(engine), last_update=float(time.replace(",", ".")))
+    _, map_id, vehicle_id, frame_index, time, path_camera1, path_camera2, path_camera3, steer, engine = message.split(';')
+    updated_state = Vehicle(map_id=int(map_id), vehicle_id=int(vehicle_id), frame_index=frame_index,
+                            path_camera1=path_camera1, path_camera2=path_camera2, path_camera3=path_camera3,
+                            steer=float(steer), engine=float(engine), last_update=float(time.replace(",", ".")))
     try:
-        db.add(updated_state)
-        db.commit()
+        db.session.add(updated_state)
+        db.session.commit()
         return updated_state
     except DatabaseError as e:
         print('Error updating vehicle. Rolling back. Error:', e)
-        db.rollback()
+        db.session.rollback()
         raise
 
 
