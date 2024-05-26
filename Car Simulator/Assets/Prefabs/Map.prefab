@@ -174,11 +174,6 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1639351693850512856, guid: a6b67e0a516d65f46a6075a376cb8c8d,
-        type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 2510200837932393408, guid: a6b67e0a516d65f46a6075a376cb8c8d,
         type: 3}
       propertyPath: m_MotionVectors
@@ -212,17 +207,17 @@ PrefabInstance:
     - target: {fileID: 4176074452727422952, guid: a6b67e0a516d65f46a6075a376cb8c8d,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 13.998978
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4176074452727422952, guid: a6b67e0a516d65f46a6075a376cb8c8d,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 8.178589
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4176074452727422952, guid: a6b67e0a516d65f46a6075a376cb8c8d,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -63.954575
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4176074452727422952, guid: a6b67e0a516d65f46a6075a376cb8c8d,
         type: 3}

@@ -23,10 +23,12 @@ public class DynamicFloor : MonoBehaviour
     [SerializeField]
     private float _pushApartDistance = 0.25f;
 
+    public Unity.Mathematics.float3 startingPointPosition { get; private set; }
+    public Unity.Mathematics.float3 startingPointRotation { get; private set; }
+
     public bool startFloorGeneration = false;
     public bool isMapReady { get; private set; }
 
-    private GameObject[] points;
     private (float x, float y)[] pointsCoordinates;
     public void SetSeed(int seed)
     {
@@ -114,7 +116,6 @@ public class DynamicFloor : MonoBehaviour
         yield return null;
         Random.InitState(_seed);
 
-        points = new GameObject[_numberOfPoints];
         pointsCoordinates = new (float x, float y)[_numberOfPoints];
 
 
@@ -127,6 +128,7 @@ public class DynamicFloor : MonoBehaviour
             float y = (Random.value + 0.125f) / 1.25f - 0.5f;
             pointsCoordinates[i] = (x, y);
         }
+
 
 
         List<int> convexHullPoints = new List<int>();
@@ -181,10 +183,18 @@ public class DynamicFloor : MonoBehaviour
             float y = trackCoordinates[i].y;
             spline.Spline.Add(new BezierKnot(new Unity.Mathematics.float3(x, 0.51f, y), 0, 0));
         }
+
         spline.Spline.SetTangentMode(TangentMode.AutoSmooth);
         spline.Spline.Closed = true;
 
         gameObject.GetComponentInChildren<SplineExtrude>().Rebuild();
+        startingPointRotation = spline.Spline.EvaluatePosition(0.04f) - spline.Spline.EvaluatePosition(0.03f);
+        startingPointPosition = spline.Spline.EvaluatePosition(0.03f);
+        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.transform.SetParent(this.transform);
+        sphere.transform.localPosition = startingPointPosition;
+        startingPointPosition = sphere.transform.position;
+        sphere.SetActive(false);
         isMapReady = true;
     }
 
