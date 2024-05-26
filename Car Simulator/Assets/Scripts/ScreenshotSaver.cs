@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 
 public class ScreenshotScript : MonoBehaviour
 {
-    public string screenshotDirectory = "./screenshots/";
+    public string screenshotDirectory = "./screenshots";
     public string screenshotName = "mapScreenshot";
     public string latestScreenshotPath;
     private const int MAP_LAYER = 1;
