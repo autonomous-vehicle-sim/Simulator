@@ -1,0 +1,223 @@
+body {
+    background: #1e1e1e;
+    color: #fafafa;
+    font-family: "Trebuchet MS";
+}
+
+a {
+    color: #fafafa;
+}
+
+h2 {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    letter-spacing: 0.5px;
+}
+
+input {
+    background: #252526;
+    border: 1px solid #3e3e42;
+    color: #fafafa;
+    padding: 6px;
+}
+
+button {
+    background: #252526;
+    border: 1px solid #3e3e42;
+    color: #fafafa;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #2d2d30;
+}
+
+#seed {
+    margin: 0 16px;
+}
+
+.simulation-controls {
+    display: flex;
+    margin-top: 15px;
+}
+
+.simulation-controls button {
+    display: block;
+    margin: 0 auto;
+}
+
+.simulations {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.simulation {
+    border: 1px solid #3e3e42;
+    display: inline-block;
+    margin: 1em;
+    padding: 12px;
+    width: 330px;
+}
+
+.simulation > a > img {
+    height: 7em;
+    width: 7em;
+}
+
+.vehicles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.vehicles-label {
+    text-align: center;
+    margin: 0 0 4px 0;
+    font-weight: bold;
+}
+
+.vehicle {
+    display: inline-block;
+    text-decoration: none;
+    background: #252526;
+    border: 1px solid #3e3e42;
+    padding: 6px 12px;
+    font-size: 0.8em;
+    flex-basis: 75px;
+    margin: 4px;
+    text-align: center;
+}
+
+.vehicle:hover {
+    background-color: #2d2d30;
+}
+
+.menu {
+    text-align: center;
+}
+
+.new-vehicle {
+    display: block;
+}
+
+.new-vehicle div {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.new-vehicle div label {
+    line-height: 1.5;
+}
+
+.create-vehicle {
+    display: block;
+    margin: 20px auto 0 auto;
+}
+
+.new-vehicle-label {
+    text-align: center;
+    margin-top: 0;
+    font-weight: bold;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh
+}
+
+.camera_view {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.camera_view > img {
+    width: 200px;
+    height: 200px;
+    margin: 0 20px;
+    text-align: center;
+    line-height: 200px;
+    border: 1px solid #3e3e42;
+    font-size: 20px;
+}
+
+section {
+    display: flex;
+    justify-content: center;
+}
+
+.track-label {
+    font-weight: bold;
+    text-align: center;
+    margin-top: 0;
+}
+
+.aerial-view {
+    border: 1px solid #3e3e42;
+    width: 280px;
+    text-align: center;
+    line-height: 278px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    margin: 0 auto 24px auto;
+    display: block;
+}
+
+.logs {
+    padding: 10px;
+    border: 1px solid #3e3e42;
+    width: 20em;
+    height: 20em;
+    overflow-y: auto;
+}
+
+.controls {
+    display: inline-block;
+    margin-left: 2em;
+    padding-top: 43px;
+}
+
+.controls div {
+    margin-bottom: 16px;
+}
+
+main > p {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+.image-controls {
+    text-align: center;
+    margin: 10px 0 32px 0;
+}
+
+.image-controls button {
+    margin: 0 8px;
+}
+
+.home-link {
+    text-align: center;
+    margin: 40px 0 0 0;
+}
+
+section > div > p {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.logs p {
+    font-family: monospace;
+    margin: 0 0 8px 0;
+}
+
+.not-available {
+    text-align: center;
+}

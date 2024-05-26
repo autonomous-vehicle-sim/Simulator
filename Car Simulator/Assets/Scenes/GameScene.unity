@@ -3044,11 +3044,12 @@ MonoBehaviour:
   - {fileID: 1604555202}
   - {fileID: 2125274606}
   - {fileID: 2078805935}
-  _capturePath: C:/UnitySimulator/
+  _capturePath: ./screenshots
   _screenshotWidth: 256
   _screenshotHeight: 256
   _framesPerSecond: 1
   _car: {fileID: 547464241}
+  carController: {fileID: 547464242}
 --- !u!1 &479386022
 GameObject:
   m_ObjectHideFlags: 0
@@ -3342,6 +3343,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 539058320}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &547464242 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4940537247173161297, guid: f4f516068a4241b499e09e335959a739,
+    type: 3}
+  m_PrefabInstance: {fileID: 539058320}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 547464241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40e758c2b5cd0fd40ad199e8c64269ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &591118005
 GameObject:
   m_ObjectHideFlags: 0

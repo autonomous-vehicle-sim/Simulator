@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, redirect
 
 from server.api.common import blueprint, api
 from server.api.frontend.views import frontend_blueprint
@@ -30,6 +30,10 @@ def create_app(test_config=None):
     @app.route('/shutdown', methods=['POST'])
     def shutdown():
         os._exit(0)
+
+    @app.route('/')
+    def index():
+        return redirect('/simulations', code=301)
 
     api.init_app(app, add_specs=False)
     app.register_blueprint(blueprint)

@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 public class CameraRecorderManual : MonoBehaviour
 {
     [SerializeField] private Camera[] _cameras;
-    [SerializeField] private String _capturePath = "C:/UnitySimulator/";
+    [SerializeField] private String _capturePath = "./screenshots";
     [SerializeField] private int _screenshotWidth = 256, _screenshotHeight = 256;
     [SerializeField] private float _framesPerSecond = 1;
     [SerializeField] private GameObject _car;
@@ -28,9 +28,10 @@ public class CameraRecorderManual : MonoBehaviour
         _pathTimestamp = DateTime.Now.ToString();
         // Replace ':" with '." as windows directories can't contain ':' in their filepaths
         _pathTimestamp = Regex.Replace(_pathTimestamp, ":", ".");
-        _carController = gameObject.GetComponent<CarControllerPlayable>();
+        _carController = _car.GetComponent<CarControllerPlayable>();
         _dataPath = _capturePath + "/" + _pathTimestamp + ".csv";
         List<String> carParams = new List<String> { "SteeringAngle", "MotorTorque" };
+        WritetoCsv(_dataPath, string.Join(";", carParams));
     }
     private void SaveScreenshot(String path, Camera camera)
     {
@@ -62,6 +63,23 @@ public class CameraRecorderManual : MonoBehaviour
         return image;
     }
 
+    private void WritetoCsv(String path, String data)
+    {
+        using (StreamWriter writer = new StreamWriter(path, true))
+        {
+            writer.WriteLine(string.Join(";", data));
+        }
+    }
+
+    private void SaveCarData(String path)
+    {
+        List<float> carData = new List<float>();
+
+        carData.Add(_carController.CurrentSteeringAngle);
+        carData.Add(_carController.CurrentSpeed);
+        WritetoCsv(path, string.Join(";", carData));
+    }
+
     // Update is called once per frame
     private void Update()
     {
@@ -75,6 +93,8 @@ public class CameraRecorderManual : MonoBehaviour
                 SaveScreenshot(filepath, _cameras[i]);
             }
             _framesCaptured++;
+
+            SaveCarData(_dataPath);
         }
     }
 }

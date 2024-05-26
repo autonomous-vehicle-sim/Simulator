@@ -2,101 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ title }}</title>
-    <style>
-        body {
-            background: #1e1e1e;
-            color: #fafafa;
-            font-family: "Trebuchet MS";
-        }
-        a {
-            color: #fafafa;
-        }
-        h2 {
-            text-align: center;
-            margin-top: 40px;
-            margin-bottom: 40px;
-            letter-spacing: 0.5px;
-        }
-        input {
-            background: #252526;
-            border: 1px solid #3e3e42;
-            color: #fafafa;
-            padding: 6px;
-        }
-        button {
-            background: #252526;
-            border: 1px solid #3e3e42;
-            color: #fafafa;
-            padding: 6px 12px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #2d2d30;
-        }
-        main {
-            display: flex;
-            flex-direction: column;
-            height: 100vh
-        }
-        .camera_view {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-        .camera_view > img {
-            width: 200px;
-            height: 200px;
-            margin: 0 20px;
-            text-align: center;
-            line-height: 200px;
-            border: 1px solid #3e3e42;
-            font-size: 20px;
-        }
-        section {
-            display: flex;
-            justify-content: center;
-        }
-        .logs {
-            padding: 10px;
-            border: 1px solid #3e3e42;
-            width: 20em;
-            height: 20em;
-            overflow-y: auto;
-        }
-        .controls {
-            display: inline-block;
-            margin-left: 2em;
-            padding-top: 43px;
-        }
-        .controls div {
-            margin-bottom: 16px;
-        }
-        main > p {
-            text-align: center;
-            font-size: 18px;
-            margin-bottom: 6px;
-        }
-        .image-controls {
-            text-align: center;
-            margin: 10px 0 32px 0;
-        }
-        .image-controls button {
-            margin: 0 8px;
-        }
-        .home-link {
-            text-align: center;
-            margin: 40px 0 0 0;
-        }
-        section > div > p {
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        .logs p {
-            font-family: monospace;
-            margin: 0 0 8px 0;
-        }
-    </style>
+    <meta name="title" content="AVS - Simulations">
+    <meta name="description" content="Unity simulator with a web-based interface intended for real-life vehicle training.">
+    <meta name="author" content="Michał Krause, Konrad Bryłowski, Aleksander Czerwionka, Krystian Nowakowski, Łukasz Nowakowski">
+    <meta name="keywords" content="unity, simulator, vehicle, ai, training, learning, ml, machine learning">
+    <meta name="language" content="English">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>AVS - Simulation {{ mapId }}, vehicle {{ vehicleId }}</title>
     <script>
         const mapId = {{ mapId }};
         const vehicleId = {{ vehicleId }};
