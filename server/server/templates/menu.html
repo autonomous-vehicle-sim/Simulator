@@ -14,23 +14,25 @@
         function removeMap(id) {
             const url = "/api/delete/" + id;
 
-            sendRequest(url);
+            sendRequest(url, "DELETE");
 
-            window.setTimeout(function () {window.location.reload();}, 1000);
+            window.setTimeout(function () { window.location.reload(); }, 1000);
         }
 
         function generateMap() {
-            const seed = parseInt(document.getElementById("seed").value);
             const url = "/api/init/map";
+
+            const seed = parseInt(document.getElementById("seed").value);
             const body = {"seed" : seed};
 
-            sendRequestWithBody(url, body);
+            sendRequestWithBody(url, body, "PUT");
 
-            window.setTimeout(function () {window.location.reload();}, 1000);
+            window.setTimeout(function () { window.location.reload(); }, 1000);
         }
 
         function createNewVehicle(mapId) {
             const url = "/api/init/instance";
+
             const maxSteer = parseInt(document.getElementById("max-steer").value);
             const maxEngine = parseInt(document.getElementById("max-engine").value);
             const posX = parseInt(document.getElementById("pos-x").value);
@@ -43,13 +45,14 @@
                 "pos_y": posY
             }
 
-            sendRequestWithBody(url, data);
-            window.setTimeout(function () {window.location.reload();}, 1000);
+            sendRequestWithBody(url, data, "PUT");
+
+            window.setTimeout(function () { window.location.reload(); }, 1000);
         }
 
-        function sendRequestWithBody(url, data) {
-            fetch(url, {
-                method: "PUT",
+        function sendRequestWithBody(url, data, method) {
+            return fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -57,15 +60,14 @@
             });
         }
 
-        function sendRequest(url) {
-            fetch(url, {
-                method: "DELETE",
+        function sendRequest(url, method) {
+            return fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json'
                 },
             });
         }
-
     </script>
 </head>
 <body>
@@ -78,15 +80,14 @@
         </div>
         <div class="simulations">
             {% for simulator in simulations %}
-            <div class="simulation">
+            <div class="simulation" id="sim-{{ simulator.id }}">
+                <p class="track-label">Track preview</p>
+                <img src="" alt="Loading track preview..." class="aerial-view">
                 {% if vehicles is defined and vehicles[loop.index0]|length > 0 %}
                 <p class="vehicles-label">Vehicles</p>
                 <div class="vehicles">
                     {% for i in vehicles[loop.index0] %}
                     <a href="http://localhost:5000/simulations/{{ simulator.id }}/{{ i.vehicle_id }}" class="vehicle">
-                        <!-- TODO: if aerial view implemented, replace element's content to:
-                        <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
-                        -->
                         Vehicle {{ i.vehicle_id }}
                     </a>
                     {% endfor %}
@@ -116,6 +117,26 @@
                     <button class="remove-instance" onclick="removeMap({{ simulator.id }})">Remove instance</button>
                 </div>
             </div>
+            <script>
+                // Load aerial view
+                window.setTimeout(function() {
+                    const simId = "{{ simulator.id }}";
+                    const imageElement = document.querySelector("#sim-" + simId + " img");
+                    if (imageElement) {
+                        const url = "/api/" + simId + "/aerial";
+                        sendRequest(url, "GET")
+                            .then((response) => response.blob())
+                            .then((data) => {
+                                const reader = new FileReader();
+                                reader.readAsDataURL(data);
+                                reader.onloadend = function() {
+                                    const imageBase64 = reader.result.split(",")[1];
+                                    imageElement.setAttribute("src", "data:image/png;base64," + imageBase64);
+                                };
+                            });
+                    }
+                }, 100);
+            </script>
             {% endfor %}
         </div>
     </div>

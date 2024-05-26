@@ -106,7 +106,7 @@ button:hover {
 }
 
 .new-vehicle div {
-    margin: 5px 0;  
+    margin: 5px 0;
     display: flex;
     justify-content: space-between;
 }
@@ -151,6 +151,23 @@ main {
 section {
     display: flex;
     justify-content: center;
+}
+
+.track-label {
+    font-weight: bold;
+    text-align: center;
+    margin-top: 0;
+}
+
+.aerial-view {
+    border: 1px solid #3e3e42;
+    width: 280px;
+    text-align: center;
+    line-height: 278px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    margin: 0 auto 24px auto;
+    display: block;
 }
 
 .logs {

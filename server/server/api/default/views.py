@@ -267,7 +267,6 @@ class AerialView(Resource):
             return {'message': str(e)}, 500
 
 
-
 @ns.route('/delete/<int:map_id>/<int:instance_id>')
 class DeleteInstance(Resource):
     @ns.response(204, 'Instance deleted successfully')
