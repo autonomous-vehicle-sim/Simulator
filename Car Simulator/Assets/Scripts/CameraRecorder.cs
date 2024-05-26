@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 public class CameraRecorder : MonoBehaviour
 {
     [SerializeField] private Camera[] _cameras;
-    [SerializeField] private string _capturePath = "./screenshots/";
+    [SerializeField] private string _capturePath = "./screenshots";
     [SerializeField] private int _screenshotWidth = 256, _screenshotHeight = 256;
     [SerializeField] private float _framesPerSecond = 1.0f;
 
@@ -38,10 +38,10 @@ public class CameraRecorder : MonoBehaviour
         }
         SetPath();
         List<String> carParams = new List<String> { "SteeringAngle", "MotorTorque" };
-        WritetoCsv(_dataPath, string.Join(";",carParams));
+        WritetoCsv(_dataPath, string.Join(";", carParams));
         SetClient();
-
     }
+
     public void SetPath()
     {
         string mapId = _carController.mapId.ToString();
@@ -65,6 +65,7 @@ public class CameraRecorder : MonoBehaviour
             writer.WriteLine(string.Join(";", data));
         }
     }
+
     private void SaveCarData(String path)
     {
         List <float> carData = new List<float>();
@@ -73,6 +74,7 @@ public class CameraRecorder : MonoBehaviour
         carData.Add(_carController.CurrentSpeed);
         WritetoCsv(path, string.Join(";", carData));
     }
+
     private void SaveScreenshot(String path, Camera camera)
     {
         Texture2D image = RTImage(camera);
