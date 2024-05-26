@@ -35,10 +35,7 @@ class Version(Resource):
 class Update(Resource):
     def post(self):
         message = request.data.decode()
-        if message.startswith('screen'):
-            insert_updated_vehicle_state(message)
-        else:
-            update_vehicle_from_msg(message)
+        insert_updated_vehicle_state(message)
 
 
 @ns.route('/init/instance')

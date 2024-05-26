@@ -23,14 +23,6 @@ def _handle_event(message) -> None:
         except Exception as e:
             print(f"Error creating frame, skipping: {e}")
             traceback.print_exc()
-    elif message.startswith("engine") or message.startswith("steer"):
-        try:
-            loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, requests.post, f"http://localhost:{FLASK_PORT}/api/update",
-                                 message.encode())
-        except Exception as e:
-            print(f"Error updating vehicle, skipping: {e}")
-            traceback.print_exc()
 
 
 class WSConnection:
