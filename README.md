@@ -15,16 +15,16 @@ Unity simulator with a web-based interface intended for real-life vehicle traini
 
 This application was created with autonomous vehicle training in mind.
 
-It presents the user with a friendly interface to create a simulated vehicle on a simulated track. 
+It provides a user-friendly interface to create a simulated vehicle on a track. 
 The user then receives images from vehicle's cameras, which can be used as training data for the vehicle.
 
-The simulator was written in C# in Unity, the web server is running on Flask written in python, and the interface is a Flask template.
+The simulator was written in C# in Unity, the web server is running on Flask written in python, and the interface is rendered through a Flask template.
 For more details check the modules' subdirectiories: [server](https://github.com/autonomous-vehicle-sim/Simulator/tree/main/server), [simulator](https://github.com/autonomous-vehicle-sim/Simulator/tree/main/Car%20Simulator).
 
 ## Usage
 
 There are a few ways of running our solution:
-- Through the main .exe file (the built .exe file opens a main menu scene with scene slection)
+- Through the main executable file (it opens a main menu scene with scene selection)
 - Running the server through the .bat file
 
 ## Project structure
