@@ -54,17 +54,21 @@ class WSConnection:
         return message
 
     def send_and_get_message(self, message, expected_msg: int = 1) -> list[str] | str:
-        responses = []
-        self.__message_lock.acquire()
-        asyncio.run(self.send_message(message))
-        response = None
-        for _ in range(expected_msg):
-            response = self.__message_queue.get()
-            responses.append(response)
-        self.__message_lock.release()
-        if expected_msg == 1:
-            return response
-        return responses
+        try:
+            responses = []
+            self.__message_lock.acquire()
+            asyncio.run(self.send_message(message))
+            response = None
+            for _ in range(expected_msg):
+                response = self.__message_queue.get()
+                responses.append(response)
+            self.__message_lock.release()
+            if expected_msg == 1:
+                return response
+            return responses
+        except Exception:
+            self.__message_lock.release()
+            raise
 
     async def send_message(self, message) -> None:
         if self.__websocket_server is None:
