@@ -7,80 +7,9 @@
     <meta name="author" content="Michał Krause, Konrad Bryłowski, Aleksander Czerwionka, Krystian Nowakowski, Łukasz Nowakowski">
     <meta name="keywords" content="unity, simulator, vehicle, ai, training, learning, ml, machine learning">
     <meta name="language" content="English">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <title>AVS - Simulations</title>
-    <style>
-        body {
-            background: #1e1e1e;
-            color: #fafafa;
-            font-family: "Trebuchet MS";
-        }
-        a {
-            color: #fafafa;
-        }
-        h2 {
-            text-align: center;
-            margin-top: 40px;
-            margin-bottom: 40px;
-            letter-spacing: 0.5px;
-        }
-        input {
-            background: #252526;
-            border: 1px solid #3e3e42;
-            color: #fafafa;
-            padding: 6px;
-        }
-        button {
-            background: #252526;
-            border: 1px solid #3e3e42;
-            color: #fafafa;
-            padding: 6px 12px;  
-            cursor: pointer;
-        }
-        button:hover {
-            background: #2d2d30;
-        }
-        #seed {
-            margin: 0 16px;
-        }
-        .simulations {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 40px;
-        }
-        .simulation {
-            border: 1px solid #3e3e42;
-            display: inline-block;
-            margin: 1em;
-            padding: 12px;
-        }
-        .simulation > a > img {
-            height: 7em;
-            width: 7em;
-        }
-        .menu {
-            text-align: center;
-        }
-        .new-vehicle {
-            display: block;
-        }
-        .new-vehicle div {
-            margin: 5px 0;
-        }
-        .create-vehicle {
-            display: block;
-            margin: 20px auto 0 auto;
-        }
-        .new-vehicle-label {
-            text-align: center;
-            margin-top: 24px;
-            font-weight: bold;
-        }
-        .remove-instance {
-            float: right;
-            margin-right: 2%
-        }
-    </style>
     <script>
         function removeMap(id) {
             const url = "/api/delete/" + id;
@@ -150,15 +79,19 @@
         <div class="simulations">
             {% for simulator in simulations %}
             <div class="simulation">
-                {% for i in vehicles[loop.index0] %}
-                <a href="http://localhost:5000/simulations/{{ simulator.id }}/{{ i.vehicle_id }}">
-                    <!-- TODO: if aerial view implemented, replace element's content to:
-                    <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
-                    -->
-                    Vehicle {{ i.vehicle_id }}
-                </a>
-                {% endfor %}
-                <button class="remove-instance" onclick="removeMap({{ simulator.id }})">Remove instance</button>
+                {% if vehicles is defined and vehicles[loop.index0]|length > 0 %}
+                <p class="vehicles-label">Vehicles</p>
+                <div class="vehicles">
+                    {% for i in vehicles[loop.index0] %}
+                    <a href="http://localhost:5000/simulations/{{ simulator.id }}/{{ i.vehicle_id }}" class="vehicle">
+                        <!-- TODO: if aerial view implemented, replace element's content to:
+                        <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
+                        -->
+                        Vehicle {{ i.vehicle_id }}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 <div class="new-vehicle">
                     <p class="new-vehicle-label">Create new vehicle</p>
                     <div>
@@ -177,7 +110,10 @@
                         <label>Starting position Y: </label>
                         <input type="text" id="pos-y" value="0">
                     </div>
+                </div>
+                <div class="simulation-controls">
                     <button class="create-vehicle" onclick="createNewVehicle({{ simulator.id }})">Create vehicle</button>
+                    <button class="remove-instance" onclick="removeMap({{ simulator.id }})">Remove instance</button>
                 </div>
             </div>
             {% endfor %}
