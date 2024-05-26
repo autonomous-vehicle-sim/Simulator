@@ -1,5 +1,6 @@
 from enum import Enum
-from server.db.models import db, Map, Vehicle, Frame  # must be imported for db.create_all
+# noinspection PyUnresolvedReferences
+from server.db.models import db, Map, Vehicle  # must be imported for db.create_all
 
 
 def config_db(app, db_name):
