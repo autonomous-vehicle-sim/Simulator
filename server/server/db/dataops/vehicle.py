@@ -31,7 +31,7 @@ def get_vehicle(map_id: int, vehicle_id: int) -> Vehicle | None:
 
 
 def get_vehicles(map_id: int) -> list[Vehicle]:
-    return Vehicle.query.filter_by(map_id=map_id).all()
+    return Vehicle.query.filter_by(map_id=map_id, frame_index=None).all()
 
 
 def update_vehicle(vehicle: Vehicle, engine: float | None, steer: float | None, time: float | None) -> None:
