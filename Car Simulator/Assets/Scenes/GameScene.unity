@@ -3044,7 +3044,7 @@ MonoBehaviour:
   - {fileID: 1604555202}
   - {fileID: 2125274606}
   - {fileID: 2078805935}
-  _capturePath: C:/UnitySimulator/
+  _capturePath: ./screenshots/
   _screenshotWidth: 256
   _screenshotHeight: 256
   _framesPerSecond: 1
