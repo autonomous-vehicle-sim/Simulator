@@ -115,6 +115,7 @@
             }
 
             sendRequestWithBody(url, data);
+            window.setTimeout(function () {window.location.reload();}, 1000);
         }
 
         function sendRequestWithBody(url, data) {
@@ -149,10 +150,14 @@
         <div class="simulations">
             {% for simulator in simulations %}
             <div class="simulation">
-                <!-- TODO: change a element last parameter from 0 to dynamic-->
-                <a href="http://localhost:5000/simulations/{{ simulator.id }}/0">
+                {% for i in vehicles[loop.index0] %}
+                <a href="http://localhost:5000/simulations/{{ simulator.id }}/{{ i.vehicle_id }}">
+                    <!-- TODO: if aerial view implemented, replace element's content to:
                     <img src="{{ simulator.aerial_view }}" alt="Simulation aerial view">
+                    -->
+                    Vehicle {{ i.vehicle_id }}
                 </a>
+                {% endfor %}
                 <button class="remove-instance" onclick="removeMap({{ simulator.id }})">Remove instance</button>
                 <div class="new-vehicle">
                     <p class="new-vehicle-label">Create new vehicle</p>

@@ -85,7 +85,7 @@ class InitMap(Resource):
             if "finished initialization" in response[1]:
                 # map;<map_id>;finished initialization;<path>
                 _, map_id, _, aerial_view_path = response[1].split(';')
-                map_id = int(response[1].split(' ')[1])
+                map_id = int(map_id)
                 map_obj = create_map(map_id, seed, aerial_view_path)
                 return {'message': f'Map {map_obj.id} initialized successfully'}, 201
         except (ValueError, KeyError) as e:
