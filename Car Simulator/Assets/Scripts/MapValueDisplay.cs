@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class MapValueDisplay : MonoBehaviour
 {
@@ -34,6 +35,9 @@ public class MapValueDisplay : MonoBehaviour
     private int gridWidth;
     private int gridHeight;
     private (string imageName, float rotationAngle)[,] mapGrid = new(string, float)[MAX_GRID_HEIGHT, MAX_GRID_WIDTH];
+    ///TTTTTTTTESSSSSSSSSSSSSSSSSSSSSSSSSTTTTTTTTTTTTTTTTTTTTTT
+    //public GameObject receiverObject;
+    private MapLoader mapLoader;
 
     void Start()
     {
@@ -201,17 +205,17 @@ public class MapValueDisplay : MonoBehaviour
     public void SaveImage()
     {
         string saveFilePath = EditorUtility.SaveFilePanel("Save file", DEFAULT_DIALOGUE_DIRECTORY, DEFAULT_SAVE_FILE_NAME, PREFERRED_EXTENSION);
-
         using (FileStream fileStream = new FileStream(saveFilePath, FileMode.Create))
         {
-            IFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(fileStream, mapGrid);
+            using (BinaryWriter writer = new BinaryWriter(fileStream))
+            {
+                writer.Write(gridWidth); // first saves grid size
+                writer.Write(gridHeight);
+
+                IFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(fileStream, mapGrid);
+            }
         }
-    }
-    public void SetMaximumValueAfterLoadingMap()
-    {
-        gridWidth = MAX_GRID_WIDTH;
-        gridHeight = MAX_GRID_HEIGHT;
     }
     public void LoadImage()
     {
@@ -219,16 +223,22 @@ public class MapValueDisplay : MonoBehaviour
 
         using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
         {
-            IFormatter formatter = new BinaryFormatter();
-            mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
+            using (BinaryReader reader = new BinaryReader(fileStream))
+            {
+                gridWidth = reader.ReadInt32(); //first saved the grid size
+                gridHeight = reader.ReadInt32();
+
+                IFormatter formatter = new BinaryFormatter();
+                mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
+            }
         }
-        SetMaximumValueAfterLoadingMap();
         DeleteGrid();
         GenerateGrid();
     }
     public void PlaySimulation()
     {
         SaveMergedImage();
+        SceneManager.LoadScene("CreatorGameScene");
     }
     void SaveMergedImage()
     {
@@ -243,7 +253,7 @@ public class MapValueDisplay : MonoBehaviour
                 float imageRotateAngle = mapGrid[i, j].rotationAngle;
                 byte[] fileData = System.IO.File.ReadAllBytes(imagePath);
                 Texture2D texture = new Texture2D(CELL_WIDTH, CELL_HEIGHT);
-                texture.LoadImage(fileData); 
+                texture.LoadImage(fileData);
                 Texture2D scaledTexture = ScaleTexture(texture, CELL_WIDTH, CELL_HEIGHT);
                 Texture2D rotatedTexture = RotateTexture(scaledTexture, imageRotateAngle);
 
@@ -255,9 +265,27 @@ public class MapValueDisplay : MonoBehaviour
         mergedTexture.Apply();
         byte[] pngBytes = mergedTexture.EncodeToPNG();
         File.WriteAllBytes(CREATED_MAP_PATH, pngBytes);
+        TextureHolder.texture = mergedTexture;
+
+        //TESTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+        /*Scene otherScene = SceneManager.GetSceneByName("CreatorGameScene");
+        GameObject[] rootObjects = otherScene.GetRootGameObjects();
+        foreach (GameObject obj in rootObjects)
+        {
+            MapLoader otherClass = obj.GetComponent<MapLoader>();
+            if (otherClass != null)
+            {
+                otherClass.SetTexture(mergedTexture); 
+                break; // Znaleziono, nie trzeba szukaæ dalej
+            }
+        
+        }*/
+        //mapLoader = FindObjectOfType<MapLoader>();
+
+       // mapLoader.SetTexture(mergedTexture);
     }
     Texture2D ScaleTexture(Texture2D source, int targetWidth, int targetHeight)
-    {
+    { 
         RenderTexture tmpTexture = RenderTexture.GetTemporary(targetWidth, targetHeight);
         RenderTexture.active = tmpTexture;
         Graphics.Blit(source, tmpTexture);
