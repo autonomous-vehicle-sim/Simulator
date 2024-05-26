@@ -129,8 +129,6 @@ public class CameraRecorder : MonoBehaviour
             {
                 float steer = _carController.CurrentSteeringAngle;
                 float engine = _carController.GetCurrentEngine();
-                float carId = _carController.carId;
-                float mapId = _carController.mapId;
                 _client.SendMessageToServer("screen;" + newPhotosUpdateInfo + ";" + steer.ToString() + ";" + engine.ToString());
             }
          }

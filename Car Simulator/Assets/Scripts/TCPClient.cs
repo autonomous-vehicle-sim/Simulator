@@ -1,8 +1,5 @@
 using UnityEngine;
 using System;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -73,10 +70,21 @@ public class TCPClient : MonoBehaviour
             offsetX = mapId * DISTANCE_BETWEEN_MAPS - 111;
             offsetY = 80;
             offsetZ = 40;
-            
+            car.transform.position = new Vector3(offsetX, offsetY, offsetZ);
+            car.GetComponent<Rigidbody>().position = new Vector3(offsetX, offsetY, offsetZ);
         }
-        car.transform.position = new Vector3(offsetX, offsetY, offsetZ);
-        car.GetComponent<Rigidbody>().position = new Vector3(offsetX, offsetY, offsetZ);
+        else
+        {
+            Unity.Mathematics.float3 position = maps[mapId].GetComponentInChildren<DynamicFloor>().startingPointPosition;
+            position.y = 10;
+            Unity.Mathematics.float3 rotation = maps[mapId].GetComponentInChildren<DynamicFloor>().startingPointRotation;
+            car.transform.position = position;
+            car.GetComponent<Rigidbody>().position = position;
+            car.GetComponent<Rigidbody>().rotation = Quaternion.LookRotation(rotation);
+            car.transform.rotation = Quaternion.LookRotation(rotation);
+        }
+
+        
     }
 
     private void InitNewMap(int seed = -1)
