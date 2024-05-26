@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 public class CameraRecorder : MonoBehaviour
 {
     [SerializeField] private Camera[] _cameras;
-    [SerializeField] private string _capturePath = "./screenshots";
+    private string _capturePath = Directory.GetCurrentDirectory() + "/screenshots/";
     [SerializeField] private int _screenshotWidth = 256, _screenshotHeight = 256;
     [SerializeField] private float _framesPerSecond = 1.0f;
 
