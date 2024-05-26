@@ -86,6 +86,12 @@
                         document.querySelector(".not-available").style.display = "block";
                         document.querySelector(".app-container").style.display = "none";
                     }
+                })
+                .catch(() => {
+                    document.querySelector("#status-details").innerHTML = "Connection to client closed, server stopped.";
+                    document.querySelector("#status-retry").style.display = "none"
+                    document.querySelector(".not-available").style.display = "block";
+                    document.querySelector(".app-container").style.display = "none";
                 });
         }
 
@@ -97,8 +103,8 @@
 </head>
 <body>
     <div class="not-available" style="display: none;">
-        <p>Unity client not connected.</p>
-        <p>Retrying in 10 seconds...</p>
+        <p id="status-details">Unity client not connected.</p>
+        <p id="status-retry">Retrying in 10 seconds...</p>
     </div>
     <div class="app-container" style="display: none;">
         <h2>Currently running simulations</h2>
