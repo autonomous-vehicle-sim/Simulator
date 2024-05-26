@@ -129,11 +129,7 @@ public class CameraRecorder : MonoBehaviour
                 float engine = _carController.GetCurrentEngine();
                 float carId = _carController.carId;
                 float mapId = _carController.mapId;
-                string newSteerUpdateInfo = "steer " + mapId + " " + carId + " " + steer.ToString() + " " + _currentFrameTimestamp.ToString();
-                string newEngineUpdateInfo = "engine " + mapId + " " + carId + " " + engine.ToString() + " " + _currentFrameTimestamp.ToString();
-                _client.SendMessageToServer("screen;" + newPhotosUpdateInfo);
-                _client.SendMessageToServer(newSteerUpdateInfo);
-                _client.SendMessageToServer(newEngineUpdateInfo);
+                _client.SendMessageToServer("screen;" + newPhotosUpdateInfo + ";" + steer.ToString() + ";" + engine.ToString());
             }
          }
     }

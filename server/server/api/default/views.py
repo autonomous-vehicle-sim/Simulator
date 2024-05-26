@@ -8,7 +8,7 @@ from server.api.common import api
 from server.api.default import websocket
 from server.api.default.models import ControlEngineCommand, ControlSteeringCommand, InitMap, InitInstance, \
     ControlPositionCommand
-from server.db.dataops.frame import get_nth_frame_by_ids, create_frame_from_msg, get_latest_frame_by_ids
+from server.db.dataops.frame import get_nth_frame_by_ids, insert_updated_vehicle_state, get_latest_frame_by_ids
 from server.db.dataops.map import get_map, create_map, delete_map_by_id
 from server.db.dataops.vehicle import create_vehicle_by_map_id, get_vehicle, delete_vehicle_by_id, \
     update_vehicle_from_msg
@@ -35,10 +35,7 @@ class Version(Resource):
 class Update(Resource):
     def post(self):
         message = request.data.decode()
-        if message.startswith('screen'):
-            create_frame_from_msg(message)
-        else:
-            update_vehicle_from_msg(message)
+        insert_updated_vehicle_state(message)
 
 
 @ns.route('/init/instance')
@@ -200,14 +197,14 @@ class Image(Resource):
     def get(self, map_id, instance_id, camera_id, image_id):
         try:
             response = None
-            frame = get_nth_frame_by_ids(map_id=map_id, vehicle_id=instance_id, n=image_id)
-            if frame:
+            vehicle_state_in_frame = get_nth_frame_by_ids(map_id=map_id, vehicle_id=instance_id, n=image_id)
+            if vehicle_state_in_frame:
                 if camera_id == 1:
-                    response = frame.path_camera1
+                    response = vehicle_state_in_frame.path_camera1
                 elif camera_id == 2:
-                    response = frame.path_camera2
+                    response = vehicle_state_in_frame.path_camera2
                 elif camera_id == 3:
-                    response = frame.path_camera3
+                    response = vehicle_state_in_frame.path_camera3
                 if response:
                     return send_file(response, mimetype='image/png')
             return {'message': 'Image data not found'}, 404
@@ -229,14 +226,14 @@ class Image(Resource):
     def get(self, map_id, instance_id, camera_id):
         try:
             response = None
-            frame = get_latest_frame_by_ids(map_id=map_id, vehicle_id=instance_id)
-            if frame:
+            latest_vehicle_state = get_latest_frame_by_ids(map_id=map_id, vehicle_id=instance_id)
+            if latest_vehicle_state:
                 if camera_id == 1:
-                    response = frame.path_camera1
+                    response = latest_vehicle_state.path_camera1
                 elif camera_id == 2:
-                    response = frame.path_camera2
+                    response = latest_vehicle_state.path_camera2
                 elif camera_id == 3:
-                    response = frame.path_camera3
+                    response = latest_vehicle_state.path_camera3
                 if response:
                     return send_file(response, mimetype='image/png')
             return {'message': 'Image data not found'}, 404
@@ -265,7 +262,6 @@ class AerialView(Resource):
             return {'message': str(e)}, 404
         except Exception as e:
             return {'message': str(e)}, 500
-
 
 
 @ns.route('/delete/<int:map_id>/<int:instance_id>')

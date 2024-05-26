@@ -14,6 +14,17 @@ IP_ADDRESS = WS_ADDRESS
 PORT = WS_PORT
 
 
+def _handle_event(message) -> None:
+    if message.startswith("screen"):
+        try:
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, requests.post, f"http://localhost:{FLASK_PORT}/api/update",
+                                 message.encode())
+        except Exception as e:
+            print(f"Error creating frame, skipping: {e}")
+            traceback.print_exc()
+
+
 class WSConnection:
     _instance = None
 
@@ -46,6 +57,7 @@ class WSConnection:
         responses = []
         self.__message_lock.acquire()
         asyncio.run(self.send_message(message))
+        response = None
         for _ in range(expected_msg):
             response = self.__message_queue.get()
             responses.append(response)
@@ -67,24 +79,7 @@ class WSConnection:
                 self.__websocket_server = None
                 self.stop()
 
-    def handle_event(self, message) -> None:
-        if message.startswith("screen"):
-            try:
-                loop = asyncio.get_event_loop()
-                loop.run_in_executor(None, requests.post, f"http://localhost:{FLASK_PORT}/api/update",
-                                     message.encode())
-            except Exception as e:
-                print(f"Error creating frame, skipping: {e}")
-                traceback.print_exc()
-        elif message.startswith("engine") or message.startswith("steer"):
-            try:
-                loop = asyncio.get_event_loop()
-                loop.run_in_executor(None, requests.post, f"http://localhost:{FLASK_PORT}/api/update",
-                                     message.encode())
-            except Exception as e:
-                print(f"Error updating vehicle, skipping: {e}")
-                traceback.print_exc()
-
+    # noinspection PyUnusedLocal
     async def __handle_connection(self, websocket, path) -> None:
         print("Simulator has connected")
         await websocket.send("Connected")
@@ -93,7 +88,7 @@ class WSConnection:
             async for message in websocket:
                 if message.startswith("screen") or message.startswith("engine") or message.startswith("steer"):
                     try:
-                        self.handle_event(message)
+                        _handle_event(message)
                     except Exception as e:
                         print(f"Error updating vehicle, skipping: {e}")
                         traceback.print_exc()
