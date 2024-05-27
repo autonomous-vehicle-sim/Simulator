@@ -1,13 +1,14 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEditor;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using TMPro;
 using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
+using UnityEditor.Build;
+
 
 public class MapValueDisplay : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class MapValueDisplay : MonoBehaviour
     public Button playButton;
     public Button selectPositionButton;
     public Button carOrientationButton;
+    public TMPro.TextMeshProUGUI informationText;
 
     private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
     private const string DEFAULT_IMAGE_NAME = "0_empty.png";
@@ -30,7 +32,7 @@ public class MapValueDisplay : MonoBehaviour
     private const float OFFSET = 2.0f;
     private const float DEFAULT_ROTATE_ANGLE = 0.0f;
     private const bool DIMENSION_TYPE_HEIGHT = true;
-    private const string DEFAULT_DIALOGUE_DIRECTORY = "C://";
+    private const string DEFAULT_DIALOGUE_DIRECTORY = "C:/UnitySimulator/";
     private const string DEFAULT_SAVE_FILE_NAME = "custom_map.map";
     private const string PREFERRED_EXTENSION = "map";
     private const string CREATED_MAP_PATH = "C:/UnitySimulator/created_map.png";
@@ -232,9 +234,13 @@ public class MapValueDisplay : MonoBehaviour
 
     public void SaveMap()
     {
-        string saveFilePath = EditorUtility.SaveFilePanel("Save file", DEFAULT_DIALOGUE_DIRECTORY, DEFAULT_SAVE_FILE_NAME, PREFERRED_EXTENSION);
-        if (saveFilePath != null)
+        try
         {
+            string saveFilePath = DEFAULT_DIALOGUE_DIRECTORY + DEFAULT_SAVE_FILE_NAME;
+            if (!Directory.Exists(DEFAULT_DIALOGUE_DIRECTORY))
+            {
+                Directory.CreateDirectory(DEFAULT_DIALOGUE_DIRECTORY);
+            }
             using (FileStream fileStream = new FileStream(saveFilePath, FileMode.Create))
             {
                 using (BinaryWriter writer = new BinaryWriter(fileStream))
@@ -244,8 +250,20 @@ public class MapValueDisplay : MonoBehaviour
                     formatter.Serialize(fileStream, mapGrid);
                 }
             }
+            DisplayInformationText("Map saved succesfull!", Color.green);
+        }
+        catch(System.Exception ex) 
+        {
+            Debug.Log(ex.Message);
+            DisplayInformationText("Map saved failed!", Color.red);
         }
     }
+
+    private void HideInformationText()
+    {
+        informationText.gameObject.SetActive(false);
+    }
+
     private void SaveGridSizeAndSpawnPosition(BinaryWriter writer)
     {
         writer.Write(gridWidth);
@@ -254,27 +272,50 @@ public class MapValueDisplay : MonoBehaviour
         writer.Write(SpawnVehiclePosition.xPosition);
         writer.Write(SpawnVehiclePosition.rotation);
     }
+
     public void LoadMap()
     {
-        string selectedImagePath = EditorUtility.OpenFilePanel("Load file", DEFAULT_DIALOGUE_DIRECTORY, PREFERRED_EXTENSION);
-        if (selectedImagePath != null)
+        string selectedImagePath = DEFAULT_DIALOGUE_DIRECTORY + DEFAULT_SAVE_FILE_NAME;
+        try
         {
-            using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
+            if (File.Exists(selectedImagePath))
             {
-                using (BinaryReader reader = new BinaryReader(fileStream))
+                using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
                 {
-                    LoadGridSizeAndSpawnPosition(reader);
-                    IFormatter formatter = new BinaryFormatter();
-                    mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
+                    using (BinaryReader reader = new BinaryReader(fileStream))
+                    {
+                        LoadGridSizeAndSpawnPosition(reader);
+                        IFormatter formatter = new BinaryFormatter();
+                        mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
+                    }
                 }
-            }
-            DeleteGrid();
-            ChangeCreatorDataAfterLoadMap();
-            GenerateGrid();
-            HighlightVehicleStartTile();
-        }
+                DeleteGrid();
+                ChangeCreatorDataAfterLoadMap();
+                GenerateGrid();
+                HighlightVehicleStartTile();
+                DisplayInformationText("Map load succesfull!!", Color.green);
 
+            }
+            else
+            {
+                DisplayInformationText("File doesn't exist!", Color.red);
+            }
+        }
+        catch (Exception ex) 
+        {
+            Debug.Log(ex.Message);
+            DisplayInformationText("Map load failed!", Color.red);
+        }
     }
+
+    private void DisplayInformationText(string text, Color color)
+    {
+        informationText.gameObject.SetActive(true);
+        informationText.text = text;
+        informationText.color = color;
+        Invoke("HideInformationText", 3f);
+    }
+
     private void LoadGridSizeAndSpawnPosition(BinaryReader reader)
     {
         gridWidth = reader.ReadInt32();
@@ -283,6 +324,7 @@ public class MapValueDisplay : MonoBehaviour
         SpawnVehiclePosition.xPosition = reader.ReadInt32();
         SpawnVehiclePosition.rotation = reader.ReadInt32();
     }
+
     public void ChangeCreatorDataAfterLoadMap()
     {
         GameObject inputFieldObject = GameObject.Find("Width Input");
@@ -297,11 +339,13 @@ public class MapValueDisplay : MonoBehaviour
 
         SpawnVehiclePosition.ChangeMapSize(gridWidth, gridHeight);
     }
+
     public void PlaySimulation()
     {
         SaveMergedImage();
         SceneManager.LoadScene("CreatorGameScene");
     }
+
     void SaveMergedImage()
     {
         int totalWidth = gridWidth * CELL_WIDTH;
@@ -328,6 +372,7 @@ public class MapValueDisplay : MonoBehaviour
         File.WriteAllBytes(CREATED_MAP_PATH, pngBytes);
         MapTextureHolder.texture = mergedTexture;
     }
+
     Texture2D ScaleTexture(Texture2D source, int targetWidth, int targetHeight)
     { 
         RenderTexture tmpTexture = RenderTexture.GetTemporary(targetWidth, targetHeight);
@@ -339,6 +384,7 @@ public class MapValueDisplay : MonoBehaviour
         RenderTexture.ReleaseTemporary(tmpTexture);
         return result;
     }
+
     Texture2D RotateTexture(Texture2D texture, float angle)
     {
         int width = texture.width;
@@ -375,6 +421,7 @@ public class MapValueDisplay : MonoBehaviour
         rotatedTexture.Apply();
         return rotatedTexture;
     }
+
     Color GetBilinearPixel(Color[] pixels, int width, int height, float positionX, float positionY)
     {
         int x = Mathf.FloorToInt(positionX);
@@ -394,11 +441,13 @@ public class MapValueDisplay : MonoBehaviour
                        (pixels[((y + 1) * width) + x] * xOpposite + pixels[((y + 1) * width) + x + 1] * positionXRatio) * positionYRatio;
         return result;
     }
+
     void SelectPositionMode()
     {
         isSelectPositionMode = !isSelectPositionMode;
         UpdateSelectPositionButtonColor();
     }
+
     void UpdateSelectPositionButtonColor()
     {
         ColorBlock colorBlock = selectPositionButton.colors;
@@ -414,6 +463,7 @@ public class MapValueDisplay : MonoBehaviour
         }
         selectPositionButton.colors = colorBlock;
     }
+
     void RemoveTileHighlight(GameObject gameObject)
     {
         var outline = gameObject.GetComponent<Outline>();
@@ -463,6 +513,7 @@ public class MapValueDisplay : MonoBehaviour
         AddSideBorder(gameObject, RotatePosition(new Vector2(0, -height / 2), angle), (new Vector2(width, 2)));
         AddSideBorder(gameObject, RotatePosition(new Vector2(-width / 2, 0), angle), new Vector2(2, height));
     }
+
     Vector2 RotatePosition(Vector2 position, float angle)
     {
         float rad = angle * Mathf.Deg2Rad;
@@ -474,6 +525,7 @@ public class MapValueDisplay : MonoBehaviour
 
         return new Vector2(newX, newY);
     }
+
     void AddSideBorder(GameObject gameObject, Vector2 position, Vector2 size)
      {
         GameObject frame = new GameObject("Frame");
@@ -486,6 +538,7 @@ public class MapValueDisplay : MonoBehaviour
         Image borderImage = frame.AddComponent<Image>();
         borderImage.color = sideColor;
      }
+
     void ResetTileSideColor(GameObject gameObject)
     {
         foreach (Transform child in gameObject.transform)
@@ -496,6 +549,7 @@ public class MapValueDisplay : MonoBehaviour
             }
         }
     }
+
     void SelectCarOrientation()
     {
         SpawnVehiclePosition.RotateTheCar();
@@ -504,6 +558,7 @@ public class MapValueDisplay : MonoBehaviour
         buttonImage.rectTransform.localEulerAngles = new Vector3(0, 0, SpawnVehiclePosition.rotation);
     }
 }
+
 public static class SpawnVehiclePosition
 {
     public static int xPosition;
@@ -521,11 +576,13 @@ public static class SpawnVehiclePosition
         mapWidth = 5;
         mapHeight = 5;
     }
+
     public static void SetCarPosition(int x, int y)
     {
         xPosition = x;
         yPosition = y;
     }
+
     public static void SetCarPositionAndMapSize(int x, int y, int gridWidth, int gridHeight)
     {
         xPosition = x;
@@ -533,20 +590,24 @@ public static class SpawnVehiclePosition
         mapWidth=gridWidth;
         mapHeight=gridHeight;
     }
+
     public static void SetCarRotation(int angle)
     {
         rotation=angle;
     }
+
     public static void RotateTheCar()
     {
         rotation -= ROTATION_ANGLE;
         rotation %= 360;
     }
+
     public static void ChangeMapSize(int gridWidth, int gridHeight)
     {
         mapWidth = gridWidth;
         mapHeight = gridHeight;
     }
+
     public static void Print()
     {
         Debug.Log($"Position X {xPosition}, Position Y {yPosition}, Rotation {rotation}, Map Width {mapWidth} Map Height {mapHeight}");
