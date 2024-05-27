@@ -6,8 +6,6 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using TMPro;
 using UnityEngine.SceneManagement;
-using Unity.VisualScripting;
-using UnityEditor.Build;
 
 
 public class MapValueDisplay : MonoBehaviour
