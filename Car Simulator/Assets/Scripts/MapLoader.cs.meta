@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b2747f60964f5b64aa6a60be71bdae17
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - vehiclePrefab: {fileID: 2829787226532518041, guid: 08cad5e77897d9d4bbe2251a47ffcaf1,
+      type: 3}
+  - mapPrefab: {fileID: 690310103244710763, guid: 4b2985ae7efbd2c47ab518c81bfc33ba,
+      type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

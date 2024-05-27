@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using TMPro;
 using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class MapValueDisplay : MonoBehaviour
 {
@@ -15,7 +16,8 @@ public class MapValueDisplay : MonoBehaviour
     public Button saveButton;
     public Button loadButton;
     public Button playButton;
-
+    public Button selectPositionButton;
+    public Button carOrientationButton;
 
     private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
     private const string DEFAULT_IMAGE_NAME = "0_empty.png";
@@ -34,21 +36,26 @@ public class MapValueDisplay : MonoBehaviour
     private const string CREATED_MAP_PATH = "C:/UnitySimulator/created_map.png";
     private int gridWidth;
     private int gridHeight;
+    private bool isSelectPositionMode = false;
     private (string imageName, float rotationAngle)[,] mapGrid = new(string, float)[MAX_GRID_HEIGHT, MAX_GRID_WIDTH];
-    ///TTTTTTTTESSSSSSSSSSSSSSSSSSSSSSSSSTTTTTTTTTTTTTTTTTTTTTT
-    //public GameObject receiverObject;
-    private MapLoader mapLoader;
+    private GameObject vehicleStartTile = null;
+    private GameObject selectedTile = null;
+    private Color sideColor = Color.red;
+    private Color selectPositionModeColor = Color.grey;
+
 
     void Start()
     {
         InitializeDefaultMapGrid();
         SizeInputScript.onEndEdit += ModifySizeOfGrid;
         GenerateGrid();
-        saveButton.onClick.AddListener(SaveImage);
-        loadButton.onClick.AddListener(LoadImage);
+        saveButton.onClick.AddListener(SaveMap);
+        loadButton.onClick.AddListener(LoadMap);
         playButton.onClick.AddListener(PlaySimulation);
-    }
+        selectPositionButton.onClick.AddListener(SelectPositionMode);
+        carOrientationButton.onClick.AddListener(SelectCarOrientation);
 
+    }
     void InitializeDefaultMapGrid()
     {
         gridWidth = DEFAULT_GRID_WIDTH;
@@ -83,13 +90,16 @@ public class MapValueDisplay : MonoBehaviour
             gridWidth = size;
         }
         GenerateGrid();
+        SpawnVehiclePosition.ChangeMapSize(gridWidth, gridHeight);
+
+        HighlightVehicleStartTile();
     }
 
     void DeleteGrid()
     {
-        foreach (Transform child in transform)
+        for (int i = transform.childCount - 1; i >= 0; i--)
         {
-            Destroy(child.gameObject);
+            DestroyImmediate(transform.GetChild(i).gameObject);
         }
     }
 
@@ -137,7 +147,7 @@ public class MapValueDisplay : MonoBehaviour
     void DisplayPaletteValueImage(float posX, float posY, string imagePath, int imageIndex)
     {
         GameObject image = CreateImage(posX, posY);
-        image.name = imagePath;
+        image.name = (imageIndex + imagePath);
         SetImageOnGameObject(image, imagePath, imageIndex);
         AddButtonOnClickEvent(image, imageIndex);
     }
@@ -199,41 +209,93 @@ public class MapValueDisplay : MonoBehaviour
 
     void OnButtonClick(GameObject gameObject, int imageIndex)
     {
-        UpdateMapSelectedImage(gameObject, imageIndex);
+        if(isSelectPositionMode)
+        {
+            vehicleStartTile = gameObject;
+            SpawnVehiclePosition.SetCarPositionAndMapSize(imageIndex % gridWidth, imageIndex / gridWidth, gridWidth, gridHeight);
+
+            if (selectedTile != gameObject)
+            {
+                if (selectedTile != null)
+                {
+                    RemoveTileHighlight(selectedTile);
+                }
+                selectedTile = gameObject;
+                ChangeTileSideColor(gameObject, imageIndex);
+            }
+        }
+        else
+        {
+            UpdateMapSelectedImage(gameObject, imageIndex);
+        }
     }
 
-    public void SaveImage()
+    public void SaveMap()
     {
         string saveFilePath = EditorUtility.SaveFilePanel("Save file", DEFAULT_DIALOGUE_DIRECTORY, DEFAULT_SAVE_FILE_NAME, PREFERRED_EXTENSION);
-        using (FileStream fileStream = new FileStream(saveFilePath, FileMode.Create))
+        if (saveFilePath != null)
         {
-            using (BinaryWriter writer = new BinaryWriter(fileStream))
+            using (FileStream fileStream = new FileStream(saveFilePath, FileMode.Create))
             {
-                writer.Write(gridWidth); // first saves grid size
-                writer.Write(gridHeight);
-
-                IFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(fileStream, mapGrid);
+                using (BinaryWriter writer = new BinaryWriter(fileStream))
+                {
+                    SaveGridSizeAndSpawnPosition(writer);
+                    IFormatter formatter = new BinaryFormatter();
+                    formatter.Serialize(fileStream, mapGrid);
+                }
             }
         }
     }
-    public void LoadImage()
+    private void SaveGridSizeAndSpawnPosition(BinaryWriter writer)
+    {
+        writer.Write(gridWidth);
+        writer.Write(gridHeight);
+        writer.Write(SpawnVehiclePosition.yPosition);
+        writer.Write(SpawnVehiclePosition.xPosition);
+        writer.Write(SpawnVehiclePosition.rotation);
+    }
+    public void LoadMap()
     {
         string selectedImagePath = EditorUtility.OpenFilePanel("Load file", DEFAULT_DIALOGUE_DIRECTORY, PREFERRED_EXTENSION);
-
-        using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
+        if (selectedImagePath != null)
         {
-            using (BinaryReader reader = new BinaryReader(fileStream))
+            using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
             {
-                gridWidth = reader.ReadInt32(); //first saved the grid size
-                gridHeight = reader.ReadInt32();
-
-                IFormatter formatter = new BinaryFormatter();
-                mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
+                using (BinaryReader reader = new BinaryReader(fileStream))
+                {
+                    LoadGridSizeAndSpawnPosition(reader);
+                    IFormatter formatter = new BinaryFormatter();
+                    mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
+                }
             }
+            DeleteGrid();
+            ChangeCreatorDataAfterLoadMap();
+            GenerateGrid();
+            HighlightVehicleStartTile();
         }
-        DeleteGrid();
-        GenerateGrid();
+
+    }
+    private void LoadGridSizeAndSpawnPosition(BinaryReader reader)
+    {
+        gridWidth = reader.ReadInt32();
+        gridHeight = reader.ReadInt32();
+        SpawnVehiclePosition.yPosition = reader.ReadInt32();
+        SpawnVehiclePosition.xPosition = reader.ReadInt32();
+        SpawnVehiclePosition.rotation = reader.ReadInt32();
+    }
+    public void ChangeCreatorDataAfterLoadMap()
+    {
+        GameObject inputFieldObject = GameObject.Find("Width Input");
+        TMP_InputField inputField = inputFieldObject.GetComponent<TMP_InputField>();
+        inputField.text = gridWidth.ToString();
+        inputFieldObject = GameObject.Find("Height Input");
+        inputField = inputFieldObject.GetComponent<TMP_InputField>();
+        inputField.text = gridHeight.ToString();
+
+        Image buttonImage = carOrientationButton.GetComponentInChildren<Image>();
+        buttonImage.rectTransform.localEulerAngles = new Vector3(0, 0, SpawnVehiclePosition.rotation);
+
+        SpawnVehiclePosition.ChangeMapSize(gridWidth, gridHeight);
     }
     public void PlaySimulation()
     {
@@ -261,28 +323,10 @@ public class MapValueDisplay : MonoBehaviour
                 mergedTexture.SetPixels(j * CELL_WIDTH, (gridHeight - i - 1) * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT, pixels);
             }
         }
-
         mergedTexture.Apply();
         byte[] pngBytes = mergedTexture.EncodeToPNG();
         File.WriteAllBytes(CREATED_MAP_PATH, pngBytes);
-        TextureHolder.texture = mergedTexture;
-
-        //TESTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-        /*Scene otherScene = SceneManager.GetSceneByName("CreatorGameScene");
-        GameObject[] rootObjects = otherScene.GetRootGameObjects();
-        foreach (GameObject obj in rootObjects)
-        {
-            MapLoader otherClass = obj.GetComponent<MapLoader>();
-            if (otherClass != null)
-            {
-                otherClass.SetTexture(mergedTexture); 
-                break; // Znaleziono, nie trzeba szukaæ dalej
-            }
-        
-        }*/
-        //mapLoader = FindObjectOfType<MapLoader>();
-
-       // mapLoader.SetTexture(mergedTexture);
+        MapTextureHolder.texture = mergedTexture;
     }
     Texture2D ScaleTexture(Texture2D source, int targetWidth, int targetHeight)
     { 
@@ -331,7 +375,6 @@ public class MapValueDisplay : MonoBehaviour
         rotatedTexture.Apply();
         return rotatedTexture;
     }
-
     Color GetBilinearPixel(Color[] pixels, int width, int height, float positionX, float positionY)
     {
         int x = Mathf.FloorToInt(positionX);
@@ -350,5 +393,162 @@ public class MapValueDisplay : MonoBehaviour
         Color result = (pixels[(y * width) + x] * xOpposite + pixels[(y * width) + x + 1] * positionXRatio) * yOpposite +
                        (pixels[((y + 1) * width) + x] * xOpposite + pixels[((y + 1) * width) + x + 1] * positionXRatio) * positionYRatio;
         return result;
+    }
+    void SelectPositionMode()
+    {
+        isSelectPositionMode = !isSelectPositionMode;
+        UpdateSelectPositionButtonColor();
+    }
+    void UpdateSelectPositionButtonColor()
+    {
+        ColorBlock colorBlock = selectPositionButton.colors;
+        if (isSelectPositionMode)
+        {
+            colorBlock.normalColor = selectPositionModeColor;
+            colorBlock.selectedColor = selectPositionModeColor;
+        }
+        else
+        {
+            colorBlock.normalColor = Color.white;
+            colorBlock.selectedColor = Color.white;
+        }
+        selectPositionButton.colors = colorBlock;
+    }
+    void RemoveTileHighlight(GameObject gameObject)
+    {
+        var outline = gameObject.GetComponent<Outline>();
+        if (outline != null)
+        {
+            Destroy(outline);
+        }
+
+        ResetTileSideColor(gameObject);
+    }
+
+    void HighlightVehicleStartTile()
+    {
+        int yPos = SpawnVehiclePosition.yPosition;
+        int xPos = SpawnVehiclePosition.xPosition;
+        int imageIndex = yPos * gridWidth + xPos;
+        GameObject mapPallet = GameObject.Find("Map Values");
+
+        if (imageIndex > mapPallet.transform.childCount)
+        {
+            SpawnVehiclePosition.SetCarPosition(0, 0);
+            imageIndex = 0;
+            Debug.Log("HighlightVehicleStartTile: Index out of range.");
+
+        }
+        GameObject gameObject = mapPallet.transform.GetChild(imageIndex).gameObject;
+        vehicleStartTile = gameObject;
+
+        if (selectedTile != null)
+        {
+            RemoveTileHighlight(selectedTile);
+        }
+
+        selectedTile = gameObject;
+        ChangeTileSideColor(selectedTile, imageIndex);
+    }
+
+    void ChangeTileSideColor(GameObject gameObject, int imageIndex)
+    {
+        RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
+        float width = rectTransform.rect.width;
+        float height = rectTransform.rect.height;
+
+        float angle = rectTransform.eulerAngles.z;
+        AddSideBorder(gameObject, RotatePosition(new Vector2(0, height / 2), angle), (new Vector2(width, 2)));
+        AddSideBorder(gameObject, RotatePosition(new Vector2(width / 2, 0), angle), (new Vector2(2, height)));
+        AddSideBorder(gameObject, RotatePosition(new Vector2(0, -height / 2), angle), (new Vector2(width, 2)));
+        AddSideBorder(gameObject, RotatePosition(new Vector2(-width / 2, 0), angle), new Vector2(2, height));
+    }
+    Vector2 RotatePosition(Vector2 position, float angle)
+    {
+        float rad = angle * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(rad);
+        float sin = Mathf.Sin(rad);
+
+        float newX = cos * position.x - sin * position.y;
+        float newY = sin * position.x + cos * position.y;
+
+        return new Vector2(newX, newY);
+    }
+    void AddSideBorder(GameObject gameObject, Vector2 position, Vector2 size)
+     {
+        GameObject frame = new GameObject("Frame");
+        frame.transform.SetParent(gameObject.transform);
+        RectTransform rectTransform = frame.AddComponent<RectTransform>();
+
+        rectTransform.anchoredPosition = position;
+        rectTransform.sizeDelta = size;
+
+        Image borderImage = frame.AddComponent<Image>();
+        borderImage.color = sideColor;
+     }
+    void ResetTileSideColor(GameObject gameObject)
+    {
+        foreach (Transform child in gameObject.transform)
+        {
+            if (child.name == "Frame")
+            {
+                Destroy(child.gameObject);
+            }
+        }
+    }
+    void SelectCarOrientation()
+    {
+        SpawnVehiclePosition.RotateTheCar();
+
+        Image buttonImage = carOrientationButton.GetComponentInChildren<Image>();
+        buttonImage.rectTransform.localEulerAngles = new Vector3(0, 0, SpawnVehiclePosition.rotation);
+    }
+}
+public static class SpawnVehiclePosition
+{
+    public static int xPosition;
+    public static int yPosition;
+    public static int rotation;
+    public static int mapWidth;
+    public static int mapHeight;
+    private const int ROTATION_ANGLE = 15;
+
+    static SpawnVehiclePosition()
+    {
+        xPosition = 0;
+        yPosition=0;
+        rotation = -180;
+        mapWidth = 5;
+        mapHeight = 5;
+    }
+    public static void SetCarPosition(int x, int y)
+    {
+        xPosition = x;
+        yPosition = y;
+    }
+    public static void SetCarPositionAndMapSize(int x, int y, int gridWidth, int gridHeight)
+    {
+        xPosition = x;
+        yPosition=y;
+        mapWidth=gridWidth;
+        mapHeight=gridHeight;
+    }
+    public static void SetCarRotation(int angle)
+    {
+        rotation=angle;
+    }
+    public static void RotateTheCar()
+    {
+        rotation -= ROTATION_ANGLE;
+        rotation %= 360;
+    }
+    public static void ChangeMapSize(int gridWidth, int gridHeight)
+    {
+        mapWidth = gridWidth;
+        mapHeight = gridHeight;
+    }
+    public static void Print()
+    {
+        Debug.Log($"Position X {xPosition}, Position Y {yPosition}, Rotation {rotation}, Map Width {mapWidth} Map Height {mapHeight}");
     }
 }
