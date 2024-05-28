@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using TMPro;
 using UnityEngine.SceneManagement;
+using SFB;
 
 
 public class MapValueDisplay : MonoBehaviour
@@ -234,7 +235,8 @@ public class MapValueDisplay : MonoBehaviour
     {
         try
         {
-            string saveFilePath = DEFAULT_DIALOGUE_DIRECTORY + DEFAULT_SAVE_FILE_NAME;
+            string saveFilePath = ShowSaveFileDialog("Save file", DEFAULT_DIALOGUE_DIRECTORY, DEFAULT_SAVE_FILE_NAME, PREFERRED_EXTENSION);
+
             if (!Directory.Exists(DEFAULT_DIALOGUE_DIRECTORY))
             {
                 Directory.CreateDirectory(DEFAULT_DIALOGUE_DIRECTORY);
@@ -257,6 +259,16 @@ public class MapValueDisplay : MonoBehaviour
         }
     }
 
+    string ShowSaveFileDialog(string title, string initialDirectory, string defaultFileName, string filter)
+    {
+        var extensions = new[] {
+            new ExtensionFilter("Files", filter)
+        };
+        string path = StandaloneFileBrowser.SaveFilePanel(title, initialDirectory, defaultFileName, extensions);
+        return path;
+    }
+
+
     private void HideInformationText()
     {
         informationText.gameObject.SetActive(false);
@@ -273,37 +285,40 @@ public class MapValueDisplay : MonoBehaviour
 
     public void LoadMap()
     {
-        string selectedImagePath = DEFAULT_DIALOGUE_DIRECTORY + DEFAULT_SAVE_FILE_NAME;
         try
         {
-            if (File.Exists(selectedImagePath))
-            {
-                using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
-                {
-                    using (BinaryReader reader = new BinaryReader(fileStream))
-                    {
-                        LoadGridSizeAndSpawnPosition(reader);
-                        IFormatter formatter = new BinaryFormatter();
-                        mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
-                    }
-                }
-                DeleteGrid();
-                ChangeCreatorDataAfterLoadMap();
-                GenerateGrid();
-                HighlightVehicleStartTile();
-                DisplayInformationText("Map load succesfull!!", Color.green);
+            string selectedImagePath = ShowOpenFileDialog("Load file", DEFAULT_DIALOGUE_DIRECTORY, PREFERRED_EXTENSION);
 
-            }
-            else
+            using (FileStream fileStream = new FileStream(selectedImagePath, FileMode.Open))
             {
-                DisplayInformationText("File doesn't exist!", Color.red);
+                using (BinaryReader reader = new BinaryReader(fileStream))
+                {
+                    LoadGridSizeAndSpawnPosition(reader);
+                    IFormatter formatter = new BinaryFormatter();
+                    mapGrid = ((string imageName, float rotationAngle)[,])formatter.Deserialize(fileStream);
+                }
             }
+            DeleteGrid();
+            ChangeCreatorDataAfterLoadMap();
+            GenerateGrid();
+            HighlightVehicleStartTile();
+            DisplayInformationText("Map load succesfull!!", Color.green);
+
         }
         catch (Exception ex) 
         {
             Debug.Log(ex.Message);
             DisplayInformationText("Map load failed!", Color.red);
         }
+    }
+
+    string ShowOpenFileDialog(string title, string initialDirectory, string filter)
+    {
+        var extensions = new[] {
+            new ExtensionFilter("Files", filter)
+        };
+        string[] paths = StandaloneFileBrowser.OpenFilePanel(title, initialDirectory, extensions, false);
+        return paths.Length > 0 ? paths[0] : null;
     }
 
     private void DisplayInformationText(string text, Color color)

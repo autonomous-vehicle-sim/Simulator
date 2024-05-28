@@ -587,6 +587,7 @@ MonoBehaviour:
   playButton: {fileID: 2044450915}
   selectPositionButton: {fileID: 1420859484}
   carOrientationButton: {fileID: 969527075}
+  informationText: {fileID: 327441422}
 --- !u!1 &188629186
 GameObject:
   m_ObjectHideFlags: 0
@@ -1141,7 +1142,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0

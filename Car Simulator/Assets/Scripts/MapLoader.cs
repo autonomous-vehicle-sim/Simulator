@@ -124,13 +124,11 @@ public class MapLoader : MonoBehaviour
     }
     void SpawnVehicle()
     {
-        SpawnVehiclePosition.Print();
         if (vehiclePrefab != null)
         {
             Vector3 spawnPosition = new Vector3(CalculateVehicleXPosition(), 0.5f, CalculateVehicleYPosition());
             Quaternion spawnRotation = Quaternion.Euler(0,  -SpawnVehiclePosition.rotation, 0);
             vehicleInstance = Instantiate(vehiclePrefab, spawnPosition, spawnRotation);
-            Debug.Log(spawnPosition + ", " + spawnRotation);
         }
     }
 }
