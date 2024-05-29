@@ -2,6 +2,8 @@ using System.IO;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Splines;
 
 public class PaletteValuesDisplay : MonoBehaviour
 {
@@ -13,20 +15,35 @@ public class PaletteValuesDisplay : MonoBehaviour
     private const float OFFSET = 7.0f;
     private const float CELL_WIDTH = 60.0f;
     private const float CELL_HEIGHT = 60.0f;
-    private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
+    private const string IMAGES_DIRECTORY_PATH = "PaletteImages/";
 
     void Start()
     {
-        string[] imageFiles = Directory.GetFiles(IMAGES_DIRECTORY_PATH, "*.png");
-        Array.Sort(imageFiles);
-        string defaultImage = imageFiles[0];
-        GenerateGrid(imageFiles);
+        Texture2D [] textures = Resources.LoadAll<Texture2D>(IMAGES_DIRECTORY_PATH);
+        Sprite[] sprites = CreateSpriteArrayFromTextureArray(textures);
+
+        Array.Sort(sprites, (s1, s2) => s1.name.CompareTo(s2.name));
+        Sprite defaultImage = sprites[0];
+
+        GenerateGrid(sprites);
         UpdateSelectedPaletteValueImage(defaultImage);
     }
 
-    void GenerateGrid(string[] imageFiles)
+    Sprite[] CreateSpriteArrayFromTextureArray(Texture2D[] textures)
     {
-        int imageIndex = 0;
+        Sprite[] sprites = new Sprite[textures.Length];
+
+        for (int i = 0; i < textures.Length; i++)
+        {
+            sprites[i] = Sprite.Create(textures[i], new Rect(0, 0, textures[i].width, textures[i].height), Vector2.zero);
+            sprites[i].name = textures[i].name;
+        }
+        return sprites;
+    }
+    void GenerateGrid(Sprite[] sprites)
+
+    {
+        int spriteIndex = 0;
         for (int y = 0; y < GRID_HEIGHT; y++)
         {
             for (int x = 0; x < GRID_WIDTH; x++)
@@ -34,18 +51,18 @@ public class PaletteValuesDisplay : MonoBehaviour
                 float posX = (x * CELL_WIDTH) + (x * OFFSET);
                 float posY = (-y * CELL_HEIGHT) - (y * OFFSET);
 
-                string imagePath = imageFiles[imageIndex];
-                imageIndex = (++imageIndex) % imageFiles.Length;
-                DisplayPaletteValueImage(posX, posY, imagePath);
+                Sprite sprite = sprites[spriteIndex];
+                spriteIndex = (++spriteIndex) % sprites.Length;
+                DisplayPaletteValueImage(posX, posY, sprite);
             }
         }
     }
 
-    void DisplayPaletteValueImage(float posX, float posY, string imagePath)
+    void DisplayPaletteValueImage(float posX, float posY, Sprite sprite)
     {
         GameObject image = CreateImage(posX, posY);
-        image.name = imagePath;
-        SetImageOnGameObject(image, imagePath);
+        image.name = sprite.name;
+        SetImageOnGameObject(image, sprite);
         AddButtonOnClickEvent(image);
     }
 
@@ -59,41 +76,28 @@ public class PaletteValuesDisplay : MonoBehaviour
         return image;
     }
 
-    void SetImageOnGameObject(GameObject gameObject, string imagePath)
+    void SetImageOnGameObject(GameObject gameObject, Sprite sprite)
     {
-        Sprite sprite = LoadSprite(imagePath);
         gameObject.GetComponent<Image>().sprite = sprite;
     }
 
     void AddButtonOnClickEvent(GameObject gameObject)
     {
         Button button = gameObject.AddComponent<Button>();
-        button.onClick.AddListener(() => OnButtonClick(gameObject.GetComponent<Image>()));
+        button.onClick.AddListener(() => OnButtonClick(gameObject.GetComponent<Image>().sprite));
     }
 
-    void UpdateSelectedPaletteValueImage(string imageName)
+    void UpdateSelectedPaletteValueImage(Sprite sprite)
     {
-        Sprite sprite = LoadSprite(imageName);
-        selectedImage.name = imageName;
+        selectedImage.name = sprite.name;
         selectedImage.sprite = sprite;
     }
 
-    Sprite LoadSprite(string path)
-    {
-        byte[] fileData = File.ReadAllBytes(path);
-        Texture2D texture = new Texture2D(2, 2);
-        texture.LoadImage(fileData);
-        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-
-        return sprite;
-    }
-
-    void OnButtonClick(Image clickedImage)
+    void OnButtonClick(Sprite clickedSprite)
     {
         RectTransform imageRectTransform = selectedImage.GetComponent<RectTransform>();
         imageRectTransform.rotation = Quaternion.identity;
 
-        UpdateSelectedPaletteValueImage(clickedImage.name);
-        selectedImage.name = clickedImage.name;
+        UpdateSelectedPaletteValueImage(clickedSprite);
     }
 }

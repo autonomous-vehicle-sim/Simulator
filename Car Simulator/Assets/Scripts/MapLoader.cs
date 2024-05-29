@@ -1,14 +1,12 @@
 using UnityEngine;
 using System.IO;
-using UnityEngine.UIElements;
-using UnityEngine.Rendering;
+
 public class MapLoader : MonoBehaviour
 {
-    public string filePath = "C:\\UnitySimulator\\created_map.png";
+    public string filePath = "C:/UnitySimulator/created_map.png";
     public GameObject vehiclePrefab;
     public Material floorMaterial;
     private GameObject vehicleInstance;
-    private Texture2D mapTexture;
     private Rigidbody carRigidBody;
     private int originX;
     private int originY;
@@ -21,10 +19,8 @@ public class MapLoader : MonoBehaviour
     {
         mapHeight = SpawnVehiclePosition.mapHeight * TILE_SIZE;
         mapWidth = SpawnVehiclePosition.mapWidth * TILE_SIZE;
-        Texture2D texture = MapTextureHolder.texture;
-        Texture2D mapTexture =ScaleTexture(texture, mapWidth, mapHeight);
 
-        CreatePlaneWithTexture(mapTexture);
+        CreatePlaneWithPng();
         SpawnVehicle();
 
         originX = 0;
@@ -69,42 +65,28 @@ public class MapLoader : MonoBehaviour
             gameObject.transform.position = new Vector3(currentX, currentY, currentZ + backY - doubleCarSize);
         }
     }
-    Texture2D ScaleTexture(Texture2D source, int targetWidth, int targetHeight)
-    {
-        RenderTexture tmpTexture = RenderTexture.GetTemporary(targetWidth, targetHeight);
-        tmpTexture.filterMode = FilterMode.Bilinear;
-        RenderTexture.active = tmpTexture;
-        Graphics.Blit(source, tmpTexture);
-        Texture2D result = new Texture2D(targetWidth, targetHeight, TextureFormat.ARGB32,false);
-        result.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
-        result.Apply();
-        RenderTexture.ReleaseTemporary(tmpTexture);
-        RenderTexture.active = null;
-        EnhanceColors(result, 5);
 
-        return result;
-    }
-    private void EnhanceColors(Texture2D texture, float enhancementFactor)
-    {
-        Color[] pixels = texture.GetPixels();
-        for (int i = 0; i < pixels.Length; i++)
-        {
-            Color pixel = pixels[i];
-            pixel.r = Mathf.Clamp01(pixel.r * enhancementFactor);
-            pixel.g = Mathf.Clamp01(pixel.g * enhancementFactor);
-            pixel.b = Mathf.Clamp01(pixel.b * enhancementFactor);
-            pixels[i] = pixel;
-        }
-        texture.SetPixels(pixels);
-        texture.Apply();
-    }
-    void CreatePlaneWithTexture(Texture2D texture)
+    void CreatePlaneWithPng()
     {
         GameObject mapObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
         mapObject.name = "Map";
-
         Renderer renderer = mapObject.GetComponent<Renderer>();
+
+        byte[] fileData = File.ReadAllBytes(filePath);
+        Texture2D texture = new Texture2D(2, 2);
+        texture.LoadImage(fileData);
+        
+        if (floorMaterial != null)
+        {
+            renderer.material = floorMaterial;
+        }
+        else
+        {
+            renderer.material = new Material(Shader.Find("Standard"));
+        }
+
         renderer.material.mainTexture = texture;
+        renderer.material.color = Color.white;
 
         float planeWidthScale = mapWidth / TILE_SIZE;
         float planeHeightScale = mapHeight / TILE_SIZE;

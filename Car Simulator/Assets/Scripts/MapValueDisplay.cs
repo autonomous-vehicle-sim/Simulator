@@ -20,7 +20,7 @@ public class MapValueDisplay : MonoBehaviour
     public Button carOrientationButton;
     public TMPro.TextMeshProUGUI informationText;
 
-    private const string IMAGES_DIRECTORY_PATH = "Assets/Resources/PaletteImages/";
+    private const string IMAGES_DIRECTORY_PATH = "PaletteImages/";
     private const string DEFAULT_IMAGE_NAME = "0_empty.png";
     private const int DEFAULT_GRID_WIDTH = 5;
     private const int DEFAULT_GRID_HEIGHT = 5;
@@ -47,15 +47,17 @@ public class MapValueDisplay : MonoBehaviour
 
     void Start()
     {
-        InitializeDefaultMapGrid();
-        SizeInputScript.onEndEdit += ModifySizeOfGrid;
-        GenerateGrid();
-        saveButton.onClick.AddListener(SaveMap);
-        loadButton.onClick.AddListener(LoadMap);
-        playButton.onClick.AddListener(PlaySimulation);
-        selectPositionButton.onClick.AddListener(SelectPositionMode);
-        carOrientationButton.onClick.AddListener(SelectCarOrientation);
-
+        if (Application.isPlaying)
+        {
+            InitializeDefaultMapGrid();
+            SizeInputScript.onEndEdit += ModifySizeOfGrid;
+            GenerateGrid();
+            saveButton.onClick.AddListener(SaveMap);
+            loadButton.onClick.AddListener(LoadMap);
+            playButton.onClick.AddListener(PlaySimulation);
+            selectPositionButton.onClick.AddListener(SelectPositionMode);
+            carOrientationButton.onClick.AddListener(SelectCarOrientation);
+        }
     }
     void InitializeDefaultMapGrid()
     {
@@ -137,7 +139,8 @@ public class MapValueDisplay : MonoBehaviour
             {
                 float posX = (x * CELL_WIDTH) + (x * OFFSET);
                 float posY = (-y * CELL_HEIGHT) - (y * OFFSET);
-                imageName = IMAGES_DIRECTORY_PATH + mapGrid[y, x].imageName;
+
+                imageName = Path.GetFileNameWithoutExtension(mapGrid[y, x].imageName);
 
                 DisplayPaletteValueImage(posX, posY, imageName, imageIndex);
                 imageIndex++;
@@ -148,7 +151,7 @@ public class MapValueDisplay : MonoBehaviour
     void DisplayPaletteValueImage(float posX, float posY, string imagePath, int imageIndex)
     {
         GameObject image = CreateImage(posX, posY);
-        image.name = (imageIndex + imagePath);
+        image.name = imagePath;
         SetImageOnGameObject(image, imagePath, imageIndex);
         AddButtonOnClickEvent(image, imageIndex);
     }
@@ -167,6 +170,7 @@ public class MapValueDisplay : MonoBehaviour
     {
         Sprite sprite = LoadSprite(imagePath);
         gameObject.GetComponent<Image>().sprite = sprite;
+
         int rowPosition = imageIndex / gridWidth;
         int columnPosition = imageIndex % gridWidth;
         RotateImage(gameObject, mapGrid[rowPosition, columnPosition].rotationAngle);
@@ -174,9 +178,7 @@ public class MapValueDisplay : MonoBehaviour
 
     Sprite LoadSprite(string path)
     {
-        byte[] fileData = System.IO.File.ReadAllBytes(path);
-        Texture2D texture = new Texture2D(2, 2);
-        texture.LoadImage(fileData);
+        Texture2D texture = Resources.Load<Texture2D>(IMAGES_DIRECTORY_PATH + Path.GetFileNameWithoutExtension(path));
         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
 
         return sprite;
@@ -368,11 +370,9 @@ public class MapValueDisplay : MonoBehaviour
         {
             for (int j = 0; j < gridWidth; j++)
             {
-                string imagePath = IMAGES_DIRECTORY_PATH + mapGrid[i, j].imageName;
+                Texture2D texture = Resources.Load<Texture2D>(IMAGES_DIRECTORY_PATH + Path.GetFileNameWithoutExtension(mapGrid[i, j].imageName));
                 float imageRotateAngle = mapGrid[i, j].rotationAngle;
-                byte[] fileData = System.IO.File.ReadAllBytes(imagePath);
-                Texture2D texture = new Texture2D(CELL_WIDTH, CELL_HEIGHT);
-                texture.LoadImage(fileData);
+
                 Texture2D scaledTexture = ScaleTexture(texture, CELL_WIDTH, CELL_HEIGHT);
                 Texture2D rotatedTexture = RotateTexture(scaledTexture, imageRotateAngle);
 

@@ -646,6 +646,7 @@ MonoBehaviour:
   filePath: C:\UnitySimulator\created_map.png
   vehiclePrefab: {fileID: 2829787226532518041, guid: f4f516068a4241b499e09e335959a739,
     type: 3}
+  floorMaterial: {fileID: 2100000, guid: 943f212b491c3184fad5c5bddabb2a4b, type: 2}
 --- !u!4 &1703707230
 Transform:
   m_ObjectHideFlags: 0
