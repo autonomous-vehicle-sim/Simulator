@@ -1,3 +1,5 @@
+import sqlalchemy
+from sqlalchemy import func
 from sqlalchemy.exc import DatabaseError
 
 from server.db.dataops.map import get_map
@@ -27,7 +29,20 @@ def create_vehicle_by_map_id(map_id: int) -> Vehicle:
 
 
 def get_vehicle(map_id: int, vehicle_id: int) -> Vehicle | None:
-    return Vehicle.query.filter_by(map_id=map_id, vehicle_id=vehicle_id).one_or_404()
+    latest_frame_subquery = db.session.query(
+        func.max(Vehicle.frame_id).label('latest_frame_id')
+    ).filter(
+        Vehicle.map_id == map_id,
+        Vehicle.vehicle_id == vehicle_id
+    ).subquery()
+    latest_vehicle = Vehicle.query.join(
+        latest_frame_subquery,
+        Vehicle.frame_id == latest_frame_subquery.c.latest_frame_id
+    ).filter(
+        Vehicle.map_id == map_id,
+        Vehicle.vehicle_id == vehicle_id
+    )
+    return latest_vehicle.one_or_404()
 
 
 def get_vehicles(map_id: int) -> list[Vehicle]:
@@ -64,16 +79,14 @@ def update_vehicle_from_msg(message: str) -> None:
     update_vehicle(vehicle, float(engine), float(steer), float(time.replace(',', '.')))
 
 
-def delete_vehicle(vehicle: Vehicle) -> None:
-    db.session.delete(vehicle)
+def delete_vehicle_by_id(map_id: int, vehicle_id: int) -> None:
+    if not get_vehicle(map_id, vehicle_id):
+        return
+    query = sqlalchemy.delete(Vehicle).where(Vehicle.map_id == map_id, Vehicle.vehicle_id == vehicle_id)
+    db.session.execute(query)
     try:
         db.session.commit()
     except DatabaseError as e:
         print('Error deleting vehicle. Rolling back. Error:', e)
         db.session.rollback()
         raise
-
-
-def delete_vehicle_by_id(map_id: int, vehicle_id: int) -> None:
-    vehicle = get_vehicle(map_id, vehicle_id)
-    delete_vehicle(vehicle)
