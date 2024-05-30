@@ -10,8 +10,7 @@ from server.api.default.models import ControlEngineCommand, ControlSteeringComma
     ControlPositionCommand
 from server.db.dataops.frame import get_nth_frame_by_ids, insert_updated_vehicle_state, get_latest_frame_by_ids
 from server.db.dataops.map import get_map, create_map, delete_map_by_id
-from server.db.dataops.vehicle import create_vehicle_by_map_id, get_vehicle, delete_vehicle_by_id, \
-    update_vehicle_from_msg
+from server.db.dataops.vehicle import create_vehicle_by_map_id, get_vehicle, delete_vehicle_by_id
 from server.utils import create_set_message, MessageSetType, create_init_map_message, create_init_instance_message, \
     create_delete_message
 
@@ -278,6 +277,8 @@ class DeleteInstance(Resource):
             return {'message': 'Instance deleted successfully'}, 204
         except ValueError as e:
             return {'message': str(e)}, 400
+        except NotFound as e:
+            return {'message': str(e)}, 404
         except Exception as e:
             return {'message': str(e)}, 500
 
