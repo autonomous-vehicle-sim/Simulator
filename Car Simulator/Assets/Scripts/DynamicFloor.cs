@@ -22,6 +22,7 @@ public class DynamicFloor : MonoBehaviour
     private float _maxDisp = 0.10f;
     [SerializeField]
     private float _pushApartDistance = 0.25f;
+    private float _timeSinceLastCapture = 0;
 
     public Unity.Mathematics.float3 startingPointPosition { get; private set; }
     public Unity.Mathematics.float3 startingPointRotation { get; private set; }
@@ -214,6 +215,13 @@ public class DynamicFloor : MonoBehaviour
     {
         if (startFloorGeneration)
             Generate();
+        _timeSinceLastCapture += Time.deltaTime;
+        if (_timeSinceLastCapture > 1.0f)
+        {
+            _timeSinceLastCapture = 0;
+            _seed = UnityEngine.Random.Range(0, 1000 * 1000);
+            Generate();
+        }
     }
 
 }
