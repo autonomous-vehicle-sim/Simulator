@@ -222,6 +222,7 @@ public class DynamicFloor : MonoBehaviour
             _seed = UnityEngine.Random.Range(0, 1000 * 1000);
             Generate();
         }
+        transform.RotateAround(transform.position, Vector3.up, 20 * Time.deltaTime);
     }
 
 }
